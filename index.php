@@ -4,3 +4,4 @@ echo "End!";
 echo "Test Cron";
 echo "Test Cron 2";
 echo "Test Cron 3";
+echo "Test Cron 4";
