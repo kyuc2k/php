@@ -2,11 +2,40 @@
 
 session_start();
 
-$client_id = "";
-$client_secret = "";
-$redirect_uri = "http://localhost/google-callback.php";
+function loadEnvFile(string $path): void
+{
+    if (!file_exists($path)) {
+        return;
+    }
 
-$conn = new mysqli("localhost","root","Root@1234","google_login");
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || strpos($line, '#') === 0) {
+            continue;
+        }
+
+        [$name, $value] = array_map('trim', explode('=', $line, 2) + [1 => '']);
+        $value = trim($value, "\"'");
+
+        putenv("$name=$value");
+        $_ENV[$name] = $value;
+        $_SERVER[$name] = $value;
+    }
+}
+
+loadEnvFile(__DIR__ . '/.env');
+
+$client_id = getenv('CLIENT_ID') ?: '';
+$client_secret = getenv('CLIENT_SECRET') ?: '';
+$redirect_uri = getenv('REDIRECT_URI') ?: 'https://kyuc2k.pro/google-callback.php';
+
+$conn = new mysqli(
+    getenv('DB_HOST') ?: 'localhost',
+    getenv('DB_USER') ?: 'root',
+    getenv('DB_PASSWORD') ?: 'Root@1234',
+    getenv('DB_NAME') ?: 'google_login'
+);
 
 if ($conn->connect_error) {
     die("DB Error");
