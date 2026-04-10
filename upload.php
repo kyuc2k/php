@@ -46,6 +46,36 @@ $conn->query(
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 );
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['file_id'])) {
+    $fileId = (int)$_POST['file_id'];
+
+    // Lấy thông tin file để kiểm tra quyền và đường dẫn
+    $stmt = $conn->prepare("SELECT file_name, file_path, user_id FROM uploads WHERE id = ?");
+    $stmt->bind_param("i", $fileId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $fileInfo = $result->fetch_assoc();
+    $stmt->close();
+
+    if ($fileInfo && $fileInfo['user_id'] == $userId) {
+        // Xóa file khỏi hệ thống
+        $fullPath = __DIR__ . '/' . $fileInfo['file_path'];
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
+        }
+
+        // Xóa khỏi database
+        $stmt = $conn->prepare("DELETE FROM uploads WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $fileId, $userId);
+        $stmt->execute();
+        $stmt->close();
+
+        $_SESSION['upload_message'] = 'Xóa file thành công.';
+        header("Location: upload.php");
+        exit();
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
     $file = $_FILES['pdf_file'];
 
@@ -95,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
 // Lấy danh sách file của user hiện tại
 $uploads = [];
 if ($userId) {
-    $stmt = $conn->prepare("SELECT file_name, file_path, uploaded_at FROM uploads WHERE user_id = ? ORDER BY uploaded_at DESC");
+    $stmt = $conn->prepare("SELECT id, file_name, file_path, uploaded_at FROM uploads WHERE user_id = ? ORDER BY uploaded_at DESC");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -118,6 +148,9 @@ if ($userId) {
         .message { margin: 16px 0; padding: 10px; border-radius: 4px; }
         .message-error { background: #fee; color: #c00; border: 1px solid #fcc; }
         .message-success { background: #efe; color: #060; border: 1px solid #cfc; }
+        button { background: #c00; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        button:hover { background: #a00; }
+        td form { display: inline; }
     </style>
 </head>
 <body>
@@ -148,6 +181,7 @@ if ($userId) {
                 <tr>
                     <th>File</th>
                     <th>Ngày upload</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
             <tbody>
@@ -155,6 +189,13 @@ if ($userId) {
                     <tr>
                         <td><a href="<?php echo htmlspecialchars($upload['file_path']); ?>" target="_blank"><?php echo htmlspecialchars($upload['file_name']); ?></a></td>
                         <td><?php echo htmlspecialchars($upload['uploaded_at']); ?></td>
+                        <td>
+                            <form method="post" onsubmit="return confirm('Bạn chắc chắn muốn xóa file này?');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="file_id" value="<?php echo htmlspecialchars($upload['id']); ?>">
+                                <button type="submit">Xóa</button>
+                            </form>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
