@@ -16,4 +16,4 @@ $user = $_SESSION['user'];
 
 <p><?= $user['email'] ?></p>
 
-<a href="logout.php">Logout</a>
+<a href="upload.php">Upload PDF</a> | <a href="logout.php">Logout</a>
