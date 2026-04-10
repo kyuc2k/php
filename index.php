@@ -1,7 +1,10 @@
 <?php
-echo "Hello world!";
-echo "End!";
-echo "Test Cron";
-echo "Test Cron 2";
-echo "Test Cron 3";
-echo "Test Cron 4";
+session_start();
+
+// Kiểm tra nếu chưa login thì chuyển hướng sang login.php
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+echo "Welcome!!!";
