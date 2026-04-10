@@ -21,8 +21,12 @@ if (!is_dir($uploadDir)) {
 }
 
 if ($uploadAvailable && !is_writable($uploadDir)) {
-    $message = 'Thư mục uploads không có quyền ghi. Vui lòng kiểm tra quyền của thư mục.';
-    $uploadAvailable = false;
+    @chmod($uploadDir, 0755);
+    clearstatcache(true, $uploadDir);
+    if (!is_writable($uploadDir)) {
+        $message = 'Thư mục uploads không có quyền ghi. Vui lòng kiểm tra quyền của thư mục.';
+        $uploadAvailable = false;
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
@@ -30,11 +34,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
 
     // Kiểm tra lỗi upload
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        $message = 'Lỗi upload file.';
+        $message = 'Lỗi upload file: ' . $file['error'];
     } elseif ($file['type'] !== 'application/pdf') {
         $message = 'Chỉ chấp nhận file PDF.';
     } elseif ($file['size'] > 10 * 1024 * 1024) { // 10MB
         $message = 'File quá lớn (tối đa 10MB).';
+    } elseif (!is_uploaded_file($file['tmp_name'])) {
+        $message = 'Tệp tải lên không hợp lệ.';
+    } elseif (!$uploadAvailable) {
+        $message = 'Upload thất bại vì thư mục lưu không khả dụng.';
     } else {
         // Tạo tên file duy nhất
         $fileName = uniqid() . '_' . basename($file['name']);
@@ -48,7 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
 
             $message = 'Upload thành công: <a href="uploads/' . $fileName . '" target="_blank">' . $fileName . '</a>';
         } else {
-            $message = 'Lỗi lưu file.';
+            $error = error_get_last();
+            $message = 'Lỗi lưu file.' . ($error ? ' ' . $error['message'] : '');
         }
     }
 }
@@ -67,10 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
         <p><?php echo $message; ?></p>
     <?php endif; ?>
 
-    <form method="post" enctype="multipart/form-data">
-        <input type="file" name="pdf_file" accept=".pdf" required>
-        <button type="submit">Upload</button>
-    </form>
+    <?php if ($uploadAvailable): ?>
+        <form method="post" enctype="multipart/form-data">
+            <input type="file" name="pdf_file" accept=".pdf" required>
+            <button type="submit">Upload</button>
+        </form>
+    <?php else: ?>
+        <p>Upload tạm dừng vì thư mục lưu không khả dụng. Vui lòng tạo thủ công thư mục <strong>uploads</strong> và cấp quyền ghi.</p>
+    <?php endif; ?>
 
     <p><a href="logout.php">Đăng xuất</a></p>
 </body>
