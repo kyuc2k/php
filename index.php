@@ -7,4 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-echo "Welcome!!!";
+// Nếu đã login, chuyển hướng sang upload.php
+header("Location: upload.php");
+exit();
+
