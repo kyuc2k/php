@@ -7,13 +7,23 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-// Tạo thư mục uploads nếu chưa có
+// Thư mục lưu file upload
 $uploadDir = __DIR__ . '/uploads/';
-if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0755, true);
-}
 
 $message = '';
+$uploadAvailable = true;
+
+if (!is_dir($uploadDir)) {
+    if (!mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
+        $message = 'Thư mục uploads không tồn tại và không thể tạo. Vui lòng tạo thủ công hoặc cấp quyền ghi cho thư mục.';
+        $uploadAvailable = false;
+    }
+}
+
+if ($uploadAvailable && !is_writable($uploadDir)) {
+    $message = 'Thư mục uploads không có quyền ghi. Vui lòng kiểm tra quyền của thư mục.';
+    $uploadAvailable = false;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
     $file = $_FILES['pdf_file'];
