@@ -51,15 +51,26 @@ if(isset($_GET['code'])) {
             $stmt->execute();
             $result = $stmt->get_result();
 
-            if($result->num_rows == 0){
+            if ($result->num_rows == 0) {
+                $stmt->close();
                 $stmt = $conn->prepare("INSERT INTO users (google_id, name, email, avatar) VALUES (?, ?, ?, ?)");
                 $stmt->bind_param("ssss", $google_id, $name, $email, $avatar);
                 $stmt->execute();
+                $userId = $stmt->insert_id;
+            } else {
+                $row = $result->fetch_assoc();
+                $userId = $row['id'];
             }
 
             $stmt->close();
 
-            $_SESSION['user'] = $user;
+            $_SESSION['user'] = [
+                'id' => $userId,
+                'google_id' => $google_id,
+                'name' => $name,
+                'email' => $email,
+                'picture' => $avatar,
+            ];
 
             header("Location: dashboard.php");
             exit();
