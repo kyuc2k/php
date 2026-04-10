@@ -11,15 +11,17 @@ if (!isset($_SESSION['user'])) {
 $user = $_SESSION['user'];
 $userId = $user['id'] ?? null;
 
+// Lấy message từ session nếu có (sau redirect)
+$message = $_SESSION['upload_message'] ?? '';
+unset($_SESSION['upload_message']);
+
 // Thư mục lưu file upload
 $uploadDir = __DIR__ . '/uploads/';
 
-$message = '';
 $uploadAvailable = true;
 
 if (!is_dir($uploadDir)) {
     if (!mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
-        $message = 'Thư mục uploads không tồn tại và không thể tạo. Vui lòng tạo thủ công hoặc cấp quyền ghi cho thư mục.';
         $uploadAvailable = false;
     }
 }
@@ -28,7 +30,6 @@ if ($uploadAvailable && !is_writable($uploadDir)) {
     @chmod($uploadDir, 0755);
     clearstatcache(true, $uploadDir);
     if (!is_writable($uploadDir)) {
-        $message = 'Thư mục uploads không có quyền ghi. Vui lòng kiểm tra quyền của thư mục.';
         $uploadAvailable = false;
     }
 }
@@ -48,19 +49,21 @@ $conn->query(
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
     $file = $_FILES['pdf_file'];
 
+    $uploadError = null;
+
     // Kiểm tra lỗi upload
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        $message = 'Lỗi upload file: ' . $file['error'];
+        $uploadError = 'Lỗi upload file: ' . $file['error'];
     } elseif ($file['type'] !== 'application/pdf') {
-        $message = 'Chỉ chấp nhận file PDF.';
+        $uploadError = 'Chỉ chấp nhận file PDF.';
     } elseif ($file['size'] > 10 * 1024 * 1024) { // 10MB
-        $message = 'File quá lớn (tối đa 10MB).';
+        $uploadError = 'File quá lớn (tối đa 10MB).';
     } elseif (!is_uploaded_file($file['tmp_name'])) {
-        $message = 'Tệp tải lên không hợp lệ.';
+        $uploadError = 'Tệp tải lên không hợp lệ.';
     } elseif (!$uploadAvailable) {
-        $message = 'Upload thất bại vì thư mục lưu không khả dụng.';
+        $uploadError = 'Upload thất bại vì thư mục lưu không khả dụng.';
     } elseif (!$userId) {
-        $message = 'Không xác định được người dùng hiện tại.';
+        $uploadError = 'Không xác định được người dùng hiện tại.';
     } else {
         // Tạo tên file duy nhất
         $fileName = uniqid() . '_' . basename($file['name']);
@@ -72,11 +75,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
             $stmt->execute();
             $stmt->close();
 
-            $message = 'Upload thành công: <a href="uploads/' . $fileName . '" target="_blank">' . $fileName . '</a>';
+            $_SESSION['upload_message'] = 'Upload thành công: <a href="uploads/' . htmlspecialchars($fileName) . '" target="_blank">' . htmlspecialchars($fileName) . '</a>';
+            
+            // Redirect để tránh duplicate upload khi reload
+            header("Location: upload.php");
+            exit();
         } else {
             $error = error_get_last();
-            $message = 'Lỗi lưu file.' . ($error ? ' ' . $error['message'] : '');
+            $uploadError = 'Lỗi lưu file.' . ($error ? ' ' . $error['message'] : '');
         }
+    }
+
+    if ($uploadError) {
+        $message = $uploadError;
     }
 }
 
@@ -103,14 +114,18 @@ if ($userId) {
         table { border-collapse: collapse; width: 100%; max-width: 800px; }
         th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
         th { background: #f4f4f4; }
-        .notice { margin: 16px 0; color: #c00; }
+        .message { margin: 16px 0; padding: 10px; border-radius: 4px; }
+        .message-error { background: #fee; color: #c00; border: 1px solid #fcc; }
+        .message-success { background: #efe; color: #060; border: 1px solid #cfc; }
     </style>
 </head>
 <body>
     <h1>Upload File PDF</h1>
 
     <?php if ($message): ?>
-        <p class="notice"><?php echo $message; ?></p>
+        <div class="message <?php echo (strpos($message, 'thành công') !== false) ? 'message-success' : 'message-error'; ?>">
+            <?php echo $message; ?>
+        </div>
     <?php endif; ?>
 
     <?php if ($uploadAvailable): ?>
@@ -119,7 +134,7 @@ if ($userId) {
             <button type="submit">Upload</button>
         </form>
     <?php else: ?>
-        <p>Upload tạm dừng vì thư mục lưu không khả dụng. Vui lòng tạo thủ công thư mục <strong>uploads</strong> và cấp quyền ghi.</p>
+        <p class="message message-error">Upload tạm dừng vì thư mục lưu không khả dụng. Vui lòng tạo thủ công thư mục <strong>uploads</strong> và cấp quyền ghi.</p>
     <?php endif; ?>
 
     <h2>File PDF bạn đã tải lên</h2>
