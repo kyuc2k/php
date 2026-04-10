@@ -2,7 +2,7 @@
 session_start();
 
 // Kiểm tra nếu chưa login thì chuyển hướng sang login.php
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit();
 }
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
             // Có thể lưu vào database nếu cần
             // $stmt = $conn->prepare("INSERT INTO uploads (user_id, file_name, file_path) VALUES (?, ?, ?)");
-            // $stmt->bind_param("iss", $_SESSION['user_id'], $fileName, $filePath);
+            // $stmt->bind_param("iss", $_SESSION['user']['id'], $fileName, $filePath);
             // $stmt->execute();
 
             $message = 'Upload thành công: <a href="uploads/' . $fileName . '" target="_blank">' . $fileName . '</a>';
