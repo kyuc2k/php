@@ -68,14 +68,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
         // Tạo tên file duy nhất
         $fileName = uniqid() . '_' . basename($file['name']);
         $filePath = $uploadDir . $fileName;
+        $relativePath = 'uploads/' . $fileName;  // Đường dẫn tương đối để lưu vào DB
 
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
             $stmt = $conn->prepare("INSERT INTO uploads (user_id, file_name, file_path) VALUES (?, ?, ?)");
-            $stmt->bind_param("iss", $userId, $fileName, $filePath);
+            $stmt->bind_param("iss", $userId, $fileName, $relativePath);
             $stmt->execute();
             $stmt->close();
 
-            $_SESSION['upload_message'] = 'Upload thành công: <a href="uploads/' . htmlspecialchars($fileName) . '" target="_blank">' . htmlspecialchars($fileName) . '</a>';
+            $_SESSION['upload_message'] = 'Upload thành công: <a href="' . htmlspecialchars($relativePath) . '" target="_blank">' . htmlspecialchars($fileName) . '</a>';
             
             // Redirect để tránh duplicate upload khi reload
             header("Location: upload.php");

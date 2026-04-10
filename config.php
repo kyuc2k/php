@@ -31,10 +31,10 @@ $client_secret = getenv('CLIENT_SECRET') ?: '';
 $redirect_uri = getenv('REDIRECT_URI') ?: 'https://kyuc2k.pro/google-callback.php';
 
 $conn = new mysqli(
-    getenv('DB_HOST') ?: 'localhost',
-    getenv('DB_USER') ?: 'root',
-    getenv('DB_PASSWORD') ?: 'Root@1234',
-    getenv('DB_NAME') ?: 'google_login'
+    getenv('DB_HOST') ?: '',
+    getenv('DB_USER') ?: '',
+    getenv('DB_PASSWORD') ?: '',
+    getenv('DB_NAME') ?: ''
 );
 
 if ($conn->connect_error) {
