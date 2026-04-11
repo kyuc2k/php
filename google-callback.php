@@ -45,25 +45,36 @@ if(isset($_GET['code'])) {
             $email = $user['email'];
             $avatar = $user['picture'];
 
-            // Check user với prepared statement để tránh SQL injection
-            $stmt = $conn->prepare("SELECT id FROM users WHERE google_id = ?");
-            $stmt->bind_param("s", $google_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
+            // Check if user exists by google_id or email
+            $stmt_check = $conn->prepare("SELECT id, email_verified FROM users WHERE google_id = ? OR email = ?");
+            $stmt_check->bind_param("ss", $google_id, $email);
+            $stmt_check->execute();
+            $result_check = $stmt_check->get_result();
 
-            if ($result->num_rows == 0) {
-                $stmt->close();
-                $stmt = $conn->prepare("INSERT INTO users (google_id, name, email, avatar) VALUES (?, ?, ?, ?)");
+            if ($result_check->num_rows == 0) {
+                // New user from Google - auto verify
+                $stmt_check->close();
+                $stmt = $conn->prepare("INSERT INTO users (google_id, name, email, avatar, email_verified) VALUES (?, ?, ?, ?, 1)");
                 $stmt->bind_param("ssss", $google_id, $name, $email, $avatar);
                 $stmt->execute();
                 $userId = $stmt->insert_id;
             } else {
-                $row = $result->fetch_assoc();
+                $row = $result_check->fetch_assoc();
                 $userId = $row['id'];
+                $verified = $row['email_verified'];
+
+                // If user exists but no google_id, update it (link account)
+                if (empty($row['google_id'])) {
+                    $stmt_check->close();
+                    $stmt = $conn->prepare("UPDATE users SET google_id = ?, name = ?, avatar = ?, email_verified = 1 WHERE id = ?");
+                    $stmt->bind_param("sssi", $google_id, $name, $avatar, $userId);
+                    $stmt->execute();
+                } else {
+                    $stmt_check->close();
+                }
             }
 
-            $stmt->close();
-
+            // Login
             $_SESSION['user'] = [
                 'id' => $userId,
                 'google_id' => $google_id,
@@ -71,7 +82,6 @@ if(isset($_GET['code'])) {
                 'email' => $email,
                 'picture' => $avatar,
             ];
-
             header("Location: dashboard.php");
             exit();
         }

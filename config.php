@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 function loadEnvFile(string $path): void
 {
     if (!file_exists($path)) {
