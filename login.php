@@ -16,44 +16,59 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['register'])) {
         $name = $_POST['name'];
         $email = $_POST['email'];
-        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-        $code = rand(100000, 999999);
+        $password = $_POST['password'];
+        $repassword = $_POST['repassword'];
 
-        $stmt = $conn->prepare("INSERT INTO users (name, email, password, verification_code, email_verified, verification_code_expires) VALUES (?, ?, ?, ?, 0, DATE_ADD(NOW(), INTERVAL 5 MINUTE))");
-        $stmt->bind_param("ssss", $name, $email, $password, $code);
-        if ($stmt->execute()) {
-            // Send email using PHPMailer
-            require 'PHPMailer/src/PHPMailer.php';
-            require 'PHPMailer/src/SMTP.php';
-            require 'PHPMailer/src/Exception.php';
-
-            $mail = new PHPMailer\PHPMailer\PHPMailer();
-            $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com';
-            $mail->SMTPAuth = true;
-            $mail->Username = getenv('GMAIL_USERNAME'); // From .env
-            $mail->Password = getenv('GMAIL_APP_PASSWORD'); // From .env
-            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = 587;
-
-            $mail->setFrom(getenv('GMAIL_USERNAME'), 'Your App');
-            $mail->addAddress($email);
-
-            $mail->isHTML(false);
-            $mail->Subject = "Verification Code";
-            $mail->Body = "Your verification code is: $code";
-
-            if ($mail->send()) {
-                $_SESSION['email'] = $email;
-                header("Location: verify.php");
-                exit();
-            } else {
-                $message = "Failed to send email.";
-            }
+        // Check if email exists
+        $stmt_check = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt_check->bind_param("s", $email);
+        $stmt_check->execute();
+        $result_check = $stmt_check->get_result();
+        if ($result_check->num_rows > 0) {
+            $message = "Email already registered.";
+            $stmt_check->close();
+        } elseif ($password !== $repassword) {
+            $message = "Passwords do not match.";
         } else {
-            $message = "Registration failed.";
+            $password_hash = password_hash($password, PASSWORD_DEFAULT);
+            $code = rand(100000, 999999);
+
+            $stmt = $conn->prepare("INSERT INTO users (name, email, password, verification_code, email_verified, verification_code_expires) VALUES (?, ?, ?, ?, 0, DATE_ADD(NOW(), INTERVAL 5 MINUTE))");
+            $stmt->bind_param("ssss", $name, $email, $password_hash, $code);
+            if ($stmt->execute()) {
+                // Send email using PHPMailer
+                require 'PHPMailer/src/PHPMailer.php';
+                require 'PHPMailer/src/SMTP.php';
+                require 'PHPMailer/src/Exception.php';
+
+                $mail = new PHPMailer\PHPMailer\PHPMailer();
+                $mail->isSMTP();
+                $mail->Host = 'smtp.gmail.com';
+                $mail->SMTPAuth = true;
+                $mail->Username = getenv('GMAIL_USERNAME'); // From .env
+                $mail->Password = getenv('GMAIL_APP_PASSWORD'); // From .env
+                $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->Port = 587;
+
+                $mail->setFrom(getenv('GMAIL_USERNAME'), 'Your App');
+                $mail->addAddress($email);
+
+                $mail->isHTML(false);
+                $mail->Subject = "Verification Code";
+                $mail->Body = "Your verification code is: $code";
+
+                if ($mail->send()) {
+                    $_SESSION['email'] = $email;
+                    header("Location: verify.php");
+                    exit();
+                } else {
+                    $message = "Failed to send email.";
+                }
+            } else {
+                $message = "Registration failed.";
+            }
+            $stmt->close();
         }
-        $stmt->close();
     } elseif (isset($_POST['login'])) {
         $email = $_POST['email'];
         $password = $_POST['password'];
@@ -100,6 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <input type="text" name="name" placeholder="Name" required>
     <input type="email" name="email" placeholder="Email" required>
     <input type="password" name="password" placeholder="Password" required>
+    <input type="password" name="repassword" placeholder="Confirm Password" required>
     <button type="submit" name="register">Register</button>
 </form>
 
