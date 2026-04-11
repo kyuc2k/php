@@ -1,7 +1,5 @@
 <?php
 
-session_start();
-
 function loadEnvFile(string $path): void
 {
     if (!file_exists($path)) {
@@ -28,7 +26,7 @@ loadEnvFile(__DIR__ . '/.env');
 
 $client_id = getenv('CLIENT_ID') ?: '';
 $client_secret = getenv('CLIENT_SECRET') ?: '';
-$redirect_uri = getenv('REDIRECT_URI') ?: 'https://kyuc2k.pro/google-callback.php';
+$redirect_uri = getenv('REDIRECT_URI') ?: '';
 
 $conn = new mysqli(
     getenv('DB_HOST') ?: '',
