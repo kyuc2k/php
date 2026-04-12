@@ -2,3 +2,6 @@
 settings.json
 *.sql
 *.pdf
+Caddyfile
+Dockerfile
+docker-compose.yml
