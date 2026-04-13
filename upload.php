@@ -83,7 +83,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
 
     // Kiểm tra lỗi upload
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        $uploadError = 'Lỗi upload file: ' . $file['error'];
+        switch ($file['error']) {
+            case UPLOAD_ERR_INI_SIZE:
+                $uploadError = 'File quá lôn (tôi da ' . ini_get('upload_max_filesize') . ').';
+                break;
+            case UPLOAD_ERR_FORM_SIZE:
+                $uploadError = 'File quá lớn theo giới hạn form.';
+                break;
+            case UPLOAD_ERR_PARTIAL:
+                $uploadError = 'File upload không hoàn toàn (lỗi kết nối).';
+                break;
+            case UPLOAD_ERR_NO_FILE:
+                $uploadError = 'Không có file nào được chọn.';
+                break;
+            case UPLOAD_ERR_NO_TMP_DIR:
+                $uploadError = 'Thư mục temp không tồn tại.';
+                break;
+            case UPLOAD_ERR_CANT_WRITE:
+                $uploadError = 'Không thể ghi file vào server.';
+                break;
+            case UPLOAD_ERR_EXTENSION:
+                $uploadError = 'File upload bị chặn bởi extension PHP.';
+                break;
+            default:
+                $uploadError = 'Lỗi upload không xác định: ' . $file['error'];
+        }
     } elseif ($file['type'] !== 'application/pdf') {
         $uploadError = 'Chỉ chấp nhận file PDF.';
     } elseif ($file['size'] > 10 * 1024 * 1024) { // 10MB
