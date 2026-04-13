@@ -1,9 +1,7 @@
 <?php
 
-session_start();
 
-function loadEnvFile(string $path): void
-{
+function loadEnvFile($path) {
     if (!file_exists($path)) {
         return;
     }
@@ -15,12 +13,15 @@ function loadEnvFile(string $path): void
             continue;
         }
 
-        [$name, $value] = array_map('trim', explode('=', $line, 2) + [1 => '']);
-        $value = trim($value, "\"'");
-
-        putenv("$name=$value");
-        $_ENV[$name] = $value;
-        $_SERVER[$name] = $value;
+        $parts = explode('=', $line, 2);
+        if (count($parts) >= 2) {
+            $name = trim($parts[0]);
+            $value = trim($parts[1], "\"'");
+            
+            putenv("$name=$value");
+            $_ENV[$name] = $value;
+            $_SERVER[$name] = $value;
+        }
     }
 }
 
@@ -38,5 +39,5 @@ $conn = new mysqli(
 );
 
 if ($conn->connect_error) {
-    die("DB Error");
+    die("DB Error: " . $conn->connect_error);
 }
