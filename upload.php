@@ -95,8 +95,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
     } elseif (!$userId) {
         $uploadError = 'Không xác định được người dùng hiện tại.';
     } else {
-        // Tạo tên file duy nhất
-        $fileName = uniqid() . '_' . basename($file['name']);
+        // Tạo tên file duy nhất với timestamp
+        $timestamp = date('dmYHis'); // ngày tháng năm giờ phút giây
+        $originalName = pathinfo($file['name'], PATHINFO_FILENAME); // Lấy tên file không có extension
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION); // Lấy extension
+        $fileName = $timestamp . '_' . $originalName . '.' . $extension;
         $filePath = $uploadDir . $fileName;
         $relativePath = 'uploads/' . $fileName;  // Đường dẫn tương đối để lưu vào DB
 
@@ -457,13 +460,129 @@ if ($userId) {
             transition: all 0.3s ease;
         }
 
-        .file-action:hover {
-            background: #667eea;
+        .file-action.delete:hover {
+            background: #dc3545;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            text-align: center;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #fee;
+            color: #dc3545;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .modal-message {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .modal-file-name {
+            background: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #667eea;
+            word-break: break-all;
+            margin-bottom: 25px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .modal-btn-cancel {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        .modal-btn-confirm {
+            background: #dc3545;
             color: white;
         }
 
-        .file-action.delete:hover {
-            background: #dc3545;
+        .modal-btn-confirm:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .message {
@@ -682,18 +801,40 @@ if ($userId) {
                                     <a href="<?= htmlspecialchars($upload['file_path']) ?>" target="_blank" class="file-action" title="Xem file">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <form method="post" onsubmit="return confirm('Bạn chắc chắn muốn xóa file này?');" style="display: inline;">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="file_id" value="<?= htmlspecialchars($upload['id']) ?>">
-                                        <button type="submit" class="file-action delete" title="Xóa file">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="file-action delete" title="Xóa file" onclick="showDeleteModal(<?= htmlspecialchars($upload['id']) ?>, '<?= htmlspecialchars($upload['file_name']) ?>')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 class="modal-title">Xác nhận xóa file</h3>
+            </div>
+            <div class="modal-message">
+                Bạn có chắc chắn muốn xóa file này không?
+                <div class="modal-file-name" id="modalFileName"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">
+                    <i class="fas fa-times"></i>
+                    Hủy
+                </button>
+                <button type="button" class="modal-btn modal-btn-confirm" id="confirmDeleteBtn">
+                    <i class="fas fa-trash"></i>
+                    Xóa
+                </button>
             </div>
         </div>
     </div>
@@ -763,6 +904,66 @@ if ($userId) {
             const submitBtn = this.querySelector('.upload-btn');
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải lên...';
             submitBtn.disabled = true;
+        });
+
+        // Modal functionality
+        let currentFileId = null;
+
+        function showDeleteModal(fileId, fileName) {
+            currentFileId = fileId;
+            const modal = document.getElementById('deleteModal');
+            const modalFileName = document.getElementById('modalFileName');
+            
+            modalFileName.textContent = fileName;
+            modal.classList.add('show');
+            
+            // Focus on confirm button
+            document.getElementById('confirmDeleteBtn').focus();
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('show');
+            currentFileId = null;
+        }
+
+        // Confirm delete button
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (currentFileId) {
+                // Create and submit form
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.style.display = 'none';
+                
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'delete';
+                form.appendChild(actionInput);
+                
+                const fileIdInput = document.createElement('input');
+                fileIdInput.type = 'hidden';
+                fileIdInput.name = 'file_id';
+                fileIdInput.value = currentFileId;
+                form.appendChild(fileIdInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+
+        // Close modal on background click
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDeleteModal();
+            }
         });
     </script>
 </body>
