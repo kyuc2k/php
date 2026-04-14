@@ -452,6 +452,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     <label for="password">Mật khẩu</label>
                     <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
                 </div>
+
+                <div style="text-align: right; margin-bottom: 20px;">
+                    <a href="forgot_password.php" style="color: #667eea; text-decoration: none; font-size: 0.9rem; font-weight: 500;">Quên mật khẩu?</a>
+                </div>
                 
                 <button type="submit" name="login" class="btn btn-primary">Đăng nhập</button>
                 
