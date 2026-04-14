@@ -897,6 +897,27 @@ if ($userId) {
         </div>
     </div>
 
+    <!-- Session Kicked Modal -->
+    <div id="sessionKickedModal" class="modal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-icon" style="background: linear-gradient(135deg, #ff9800 0%, #f44336 100%); color: white;">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h3 class="modal-title">Phiên đăng nhập đã kết thúc</h3>
+            <div class="modal-message">
+                Tài khoản của bạn vừa được đăng nhập trên một thiết bị khác. Vì lý do bảo mật, phiên hiện tại sẽ bị đăng xuất.
+            </div>
+            <div id="sessionKickedCountdown" style="font-size: 0.9rem; color: #999; margin-bottom: 20px;">
+                Tự động chuyển hướng sau <span id="countdownTimer">5</span> giây...
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 100%;" onclick="window.location.href='login.php'">
+                    <i class="fas fa-sign-in-alt"></i> Đăng nhập lại
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Drag and drop functionality
         const uploadArea = document.getElementById('uploadArea');
@@ -1023,6 +1044,30 @@ if ($userId) {
                 closeDeleteModal();
             }
         });
+
+        // Real-time session check - polls every 3 seconds
+        let sessionKicked = false;
+        setInterval(function() {
+            if (sessionKicked) return;
+            fetch('check_session.php')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.valid && !sessionKicked) {
+                        sessionKicked = true;
+                        document.getElementById('sessionKickedModal').classList.add('show');
+                        let seconds = 5;
+                        const timer = setInterval(function() {
+                            seconds--;
+                            document.getElementById('countdownTimer').textContent = seconds;
+                            if (seconds <= 0) {
+                                clearInterval(timer);
+                                window.location.href = 'login.php';
+                            }
+                        }, 1000);
+                    }
+                })
+                .catch(() => {});
+        }, 3000);
     </script>
 </body>
 </html>
