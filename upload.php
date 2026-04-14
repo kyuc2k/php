@@ -183,12 +183,14 @@ if ($userId) {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
+            overflow-x: hidden;
         }
 
         .upload-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            overflow: hidden;
         }
 
         header {
@@ -203,6 +205,7 @@ if ($userId) {
             align-items: center;
             flex-wrap: wrap;
             gap: 20px;
+            min-width: 0;
         }
 
         .header-title {
@@ -267,6 +270,7 @@ if ($userId) {
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 30px;
+            min-width: 0;
         }
 
         .upload-section {
@@ -275,6 +279,7 @@ if ($userId) {
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            min-width: 0;
         }
 
         .section-title {
@@ -299,17 +304,13 @@ if ($userId) {
             transition: all 0.3s ease;
             background: #f8f9fa;
             position: relative;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .upload-area:hover {
             border-color: #667eea;
             background: #f0f4ff;
-        }
-
-        .upload-area.dragover {
-            border-color: #667eea;
-            background: #e8f0ff;
-            transform: scale(1.02);
         }
 
         .upload-icon {
@@ -322,12 +323,16 @@ if ($userId) {
             font-size: 1.1rem;
             color: #666;
             margin-bottom: 10px;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .upload-subtext {
             font-size: 0.9rem;
             color: #999;
             margin-bottom: 25px;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .file-input {
@@ -344,6 +349,13 @@ if ($userId) {
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            max-width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            white-space: normal;
+            flex-wrap: wrap;
         }
 
         .upload-btn:hover {
@@ -357,6 +369,8 @@ if ($userId) {
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            min-width: 0;
+            overflow: hidden;
         }
 
         .files-header {
@@ -454,9 +468,8 @@ if ($userId) {
             font-weight: 600;
             color: #333;
             margin-bottom: 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            word-break: break-all;
+            overflow-wrap: anywhere;
         }
 
         .file-date {
@@ -596,8 +609,6 @@ if ($userId) {
             box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
         }
 
-        }
-
         @keyframes slideUp {
             from {
                 transform: translateY(50px);
@@ -615,8 +626,20 @@ if ($userId) {
             margin-bottom: 20px;
             font-weight: 500;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 10px;
+            flex-wrap: wrap;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .message a {
+            color: inherit;
+            text-decoration: underline;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .message-error {
@@ -667,7 +690,7 @@ if ($userId) {
                 grid-template-columns: 1fr;
             }
 
-            .header {
+            header {
                 flex-direction: column;
                 text-align: center;
                 padding: 20px;
@@ -702,6 +725,21 @@ if ($userId) {
 
             .upload-area {
                 padding: 20px 15px;
+            }
+
+            .upload-btn {
+                width: 100%;
+                max-width: 100%;
+                padding: 12px 16px;
+                font-size: 1rem;
+            }
+
+            .message {
+                display: block;
+            }
+
+            .message i {
+                margin-right: 10px;
             }
 
             .upload-icon {
