@@ -80,16 +80,55 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $result = $stmt->get_result();
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
-            if (password_verify($password, $row['password']) && $row['email_verified'] == 1) {
-                $_SESSION['user'] = [
-                    'id' => $row['id'],
-                    'name' => $row['name'],
-                    'email' => $email,
-                ];
-                header("Location: dashboard.php");
-                exit();
+            if (password_verify($password, $row['password'])) {
+                if ($row['email_verified'] == 1) {
+                    $_SESSION['user'] = [
+                        'id' => $row['id'],
+                        'name' => $row['name'],
+                        'email' => $email,
+                    ];
+                    header("Location: dashboard.php");
+                    exit();
+                } else {
+                    // Email not verified - redirect to verification page
+                    $_SESSION['email'] = $email;
+                    $message = "Please verify your email before logging in. A verification code has been sent to your email.";
+                    
+                    // Generate and send new verification code
+                    $code = rand(100000, 999999);
+                    $stmt_update = $conn->prepare("UPDATE users SET verification_code = ?, verification_code_expires = DATE_ADD(NOW(), INTERVAL 5 MINUTE) WHERE email = ?");
+                    $stmt_update->bind_param("ss", $code, $email);
+                    $stmt_update->execute();
+                    $stmt_update->close();
+                    
+                    // Send email using PHPMailer
+                    require 'PHPMailer/src/PHPMailer.php';
+                    require 'PHPMailer/src/SMTP.php';
+                    require 'PHPMailer/src/Exception.php';
+
+                    $mail = new PHPMailer\PHPMailer\PHPMailer();
+                    $mail->isSMTP();
+                    $mail->Host = 'smtp.gmail.com';
+                    $mail->SMTPAuth = true;
+                    $mail->Username = getenv('GMAIL_USERNAME');
+                    $mail->Password = getenv('GMAIL_APP_PASSWORD');
+                    $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port = 587;
+
+                    $mail->setFrom(getenv('GMAIL_USERNAME'), 'Your App');
+                    $mail->addAddress($email);
+
+                    $mail->isHTML(false);
+                    $mail->Subject = "Email Verification Code";
+                    $mail->Body = "Your verification code is: $code";
+
+                    if ($mail->send()) {
+                        header("Location: verify.php");
+                        exit();
+                    }
+                }
             } else {
-                $message = "Invalid credentials or email not verified.";
+                $message = "Invalid password.";
             }
         } else {
             $message = "User not found.";
