@@ -75,6 +75,13 @@ if(isset($_GET['code'])) {
                 }
             }
 
+            // Generate unique session token
+            $sessionToken = bin2hex(random_bytes(32));
+            $stmt_token = $conn->prepare("UPDATE users SET session_token = ? WHERE id = ?");
+            $stmt_token->bind_param("si", $sessionToken, $userId);
+            $stmt_token->execute();
+            $stmt_token->close();
+
             // Login
             $_SESSION['user'] = [
                 'id' => $userId,
@@ -83,6 +90,7 @@ if(isset($_GET['code'])) {
                 'email' => $email,
                 'picture' => $avatar,
             ];
+            $_SESSION['session_token'] = $sessionToken;
             header("Location: dashboard.php");
             exit();
         }

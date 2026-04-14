@@ -3,9 +3,7 @@
 session_start();
 require 'config.php';
 
-if(!isset($_SESSION['user'])){
-    header("Location: login.php");
-}
+require 'auth_check.php';
 
 $user = $_SESSION['user'];
 $userId = $user['id'] ?? null;

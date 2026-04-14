@@ -82,11 +82,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $row = $result->fetch_assoc();
             if (password_verify($password, $row['password'])) {
                 if ($row['email_verified'] == 1) {
+                    // Generate unique session token
+                    $sessionToken = bin2hex(random_bytes(32));
+                    $stmt_token = $conn->prepare("UPDATE users SET session_token = ? WHERE id = ?");
+                    $stmt_token->bind_param("si", $sessionToken, $row['id']);
+                    $stmt_token->execute();
+                    $stmt_token->close();
+
                     $_SESSION['user'] = [
                         'id' => $row['id'],
                         'name' => $row['name'],
                         'email' => $email,
                     ];
+                    $_SESSION['session_token'] = $sessionToken;
                     header("Location: dashboard.php");
                     exit();
                 } else {
@@ -374,6 +382,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border: 1px solid #cfc;
         }
 
+        .message-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+        }
+
         .divider {
             text-align: center;
             margin: 25px 0;
@@ -475,7 +489,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         <div class="auth-right">
             <?php if ($message): ?>
-                <div class="message <?php echo (strpos($message, 'failed') !== false || strpos($message, 'Invalid') !== false || strpos($message, 'not found') !== false || strpos($message, 'do not match') !== false) ? 'message-error' : 'message-success'; ?>">
+                <div class="message <?php
+                    if (strpos($message, 'thiết bị khác') !== false || strpos($message, 'đăng xuất') !== false) {
+                        echo 'message-warning';
+                    } elseif (strpos($message, 'failed') !== false || strpos($message, 'Invalid') !== false || strpos($message, 'not found') !== false || strpos($message, 'do not match') !== false || strpos($message, 'already') !== false) {
+                        echo 'message-error';
+                    } else {
+                        echo 'message-success';
+                    }
+                ?>">
                     <?php echo htmlspecialchars($message); ?>
                 </div>
             <?php endif; ?>

@@ -2,11 +2,7 @@
 session_start();
 require 'config.php';
 
-// Kiểm tra nếu chưa login thì chuyển hướng sang login.php
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit();
-}
+require 'auth_check.php';
 
 $user = $_SESSION['user'];
 $userId = $user['id'] ?? null;
