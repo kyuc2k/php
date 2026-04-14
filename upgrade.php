@@ -25,39 +25,20 @@ $message = $_SESSION['upgrade_message'] ?? '';
 $messageType = $_SESSION['upgrade_message_type'] ?? '';
 unset($_SESSION['upgrade_message'], $_SESSION['upgrade_message_type']);
 
-// Handle upgrade purchase
+// Handle upgrade - redirect to payment page
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
     $plan = $_POST['plan'];
+    $validPlans = ['1gb', '2gb'];
 
-    $plans = [
-        '1gb' => ['size' => 1073741824, 'price' => 10000, 'label' => '1GB'],
-        '2gb' => ['size' => 2147483648, 'price' => 15000, 'label' => '2GB'],
-    ];
-
-    if (isset($plans[$plan])) {
-        $selected = $plans[$plan];
-        $newLimit = $selected['size'];
-
-        if ($currentLimit >= $newLimit) {
-            $_SESSION['upgrade_message'] = 'Gói hiện tại của bạn đã bằng hoặc lớn hơn gói này!';
-            $_SESSION['upgrade_message_type'] = 'error';
-        } else {
-            // Update storage limit
-            $stmt_up = $conn->prepare("UPDATE users SET storage_limit = ? WHERE id = ?");
-            $stmt_up->bind_param("ii", $newLimit, $userId);
-            $stmt_up->execute();
-            $stmt_up->close();
-
-            $_SESSION['upgrade_message'] = 'Nâng cấp lên gói ' . $selected['label'] . ' thành công!';
-            $_SESSION['upgrade_message_type'] = 'success';
-        }
+    if (in_array($plan, $validPlans)) {
+        header("Location: payment.php?plan=" . urlencode($plan));
+        exit();
     } else {
         $_SESSION['upgrade_message'] = 'Gói không hợp lệ.';
         $_SESSION['upgrade_message_type'] = 'error';
+        header("Location: upgrade.php");
+        exit();
     }
-
-    header("Location: upgrade.php");
-    exit();
 }
 
 // Determine current plan label
@@ -642,9 +623,10 @@ if ($currentLimit >= 2147483648) {
             <div class="modal-icon" style="background: linear-gradient(135deg, #28a745, #20c997);">
                 <i class="fas fa-crown"></i>
             </div>
-            <h3 class="modal-title">Xác nhận nâng cấp</h3>
+            <h3 class="modal-title">Thanh toán qua MoMo</h3>
             <div class="modal-message">
-                Bạn muốn nâng cấp lên <strong id="modalPlanName"></strong>?
+                Bạn muốn nâng cấp lên <strong id="modalPlanName"></strong>?<br>
+                <span style="font-size: 0.9rem; color: #999;">Bạn sẽ được chuyển sang trang thanh toán MoMo</span>
             </div>
             <div class="modal-price" id="modalPrice"></div>
             <div class="modal-actions">
@@ -653,8 +635,8 @@ if ($currentLimit >= 2147483648) {
                 </button>
                 <form method="post" id="upgradeForm" style="display:inline;">
                     <input type="hidden" name="plan" id="upgradePlan">
-                    <button type="submit" class="modal-btn modal-btn-confirm">
-                        <i class="fas fa-check"></i> Xác nhận
+                    <button type="submit" class="modal-btn modal-btn-confirm" style="background: linear-gradient(135deg, #ae2070, #d63384);">
+                        <i class="fas fa-wallet"></i> Thanh toán
                     </button>
                 </form>
             </div>
