@@ -8,6 +8,31 @@ if(!isset($_SESSION['user'])){
 }
 
 $user = $_SESSION['user'];
+$userId = $user['id'] ?? null;
+
+// Handle delete
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['file_id'])) {
+    $fileId = (int)$_POST['file_id'];
+    $stmt = $conn->prepare("SELECT file_name, file_path, user_id FROM uploads WHERE id = ?");
+    $stmt->bind_param("i", $fileId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $fileInfo = $result->fetch_assoc();
+    $stmt->close();
+
+    if ($fileInfo && $fileInfo['user_id'] == $userId) {
+        $fullPath = __DIR__ . '/' . $fileInfo['file_path'];
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
+        }
+        $stmt = $conn->prepare("DELETE FROM uploads WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $fileId, $userId);
+        $stmt->execute();
+        $stmt->close();
+    }
+    header("Location: dashboard.php");
+    exit();
+}
 
 // Get user statistics
 $stmt_files = $conn->prepare("SELECT COUNT(*) as total_files FROM uploads WHERE user_id = ?");
@@ -19,7 +44,7 @@ $stats['total_size'] = 0; // Default to 0 since we don't have file_size column
 $stmt_files->close();
 
 // Get recent files
-$stmt_recent = $conn->prepare("SELECT file_name, file_path, uploaded_at FROM uploads WHERE user_id = ? ORDER BY uploaded_at DESC LIMIT 5");
+$stmt_recent = $conn->prepare("SELECT id, file_name, file_path, uploaded_at FROM uploads WHERE user_id = ? ORDER BY uploaded_at DESC LIMIT 5");
 $stmt_recent->bind_param("i", $user['id']);
 $stmt_recent->execute();
 $result_recent = $stmt_recent->get_result();
@@ -319,6 +344,11 @@ $stmt_recent->close();
             color: white;
         }
 
+        .file-action.delete:hover {
+            background: #dc3545;
+            color: white;
+        }
+
         .empty-state {
             text-align: center;
             padding: 40px;
@@ -371,6 +401,120 @@ $stmt_recent->close();
         .action-item span {
             font-weight: 600;
             font-size: 0.9rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            text-align: center;
+        }
+
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #fee;
+            color: #dc3545;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .modal-message {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .modal-file-name {
+            background: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #667eea;
+            word-break: break-all;
+            margin-bottom: 25px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .modal-btn-cancel {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        .modal-btn-confirm {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-confirm:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         @media (max-width: 768px) {
@@ -529,6 +673,9 @@ $stmt_recent->close();
                                     <a href="<?= htmlspecialchars($file['file_path']) ?>" target="_blank" class="file-action" title="Xem file">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    <button type="button" class="file-action delete" title="Xóa file" onclick="showDeleteModal(<?= $file['id'] ?>, '<?= htmlspecialchars($file['file_name'], ENT_QUOTES) ?>')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </li>
                         <?php endforeach; ?>
@@ -568,5 +715,52 @@ $stmt_recent->close();
             </div>
         </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 class="modal-title">Xác nhận xóa file</h3>
+            <div class="modal-message">
+                Bạn có chắc chắn muốn xóa file này không?
+                <div class="modal-file-name" id="modalFileName"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">
+                    <i class="fas fa-times"></i> Hủy
+                </button>
+                <button type="button" class="modal-btn modal-btn-confirm" id="confirmDeleteBtn">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <form id="deleteForm" method="post" style="display:none;">
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="file_id" id="deleteFileId">
+    </form>
+
+    <script>
+        function showDeleteModal(fileId, fileName) {
+            document.getElementById('modalFileName').textContent = fileName;
+            document.getElementById('deleteFileId').value = fileId;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            document.getElementById('deleteForm').submit();
+        });
+
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDeleteModal();
+        });
+    </script>
 </body>
 </html>
