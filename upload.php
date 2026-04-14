@@ -37,10 +37,37 @@ $conn->query(
         user_id INT NOT NULL,
         file_name VARCHAR(255) NOT NULL,
         file_path VARCHAR(500) NOT NULL,
+        file_size BIGINT DEFAULT 0,
         uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 );
+
+// Add file_size column if not exists (for existing tables)
+$conn->query("ALTER TABLE uploads ADD COLUMN IF NOT EXISTS file_size BIGINT DEFAULT 0");
+
+// Add storage_limit column to users if not exists (default 5MB)
+$conn->query("ALTER TABLE users ADD COLUMN IF NOT EXISTS storage_limit BIGINT DEFAULT 5242880");
+
+// Get user storage limit and used storage
+$stmt_limit = $conn->prepare("SELECT storage_limit FROM users WHERE id = ?");
+$stmt_limit->bind_param("i", $userId);
+$stmt_limit->execute();
+$result_limit = $stmt_limit->get_result();
+$userRow = $result_limit->fetch_assoc();
+$storageLimit = $userRow['storage_limit'] ?? 5242880; // 5MB default
+$stmt_limit->close();
+
+$stmt_used = $conn->prepare("SELECT COALESCE(SUM(file_size), 0) as used_storage FROM uploads WHERE user_id = ?");
+$stmt_used->bind_param("i", $userId);
+$stmt_used->execute();
+$result_used = $stmt_used->get_result();
+$usedStorage = $result_used->fetch_assoc()['used_storage'];
+$stmt_used->close();
+
+$storagePercent = $storageLimit > 0 ? min(100, round(($usedStorage / $storageLimit) * 100, 1)) : 0;
+$storageExceeded = $usedStorage >= $storageLimit;
+$storageNearlyFull = $storagePercent >= 90 && !$storageExceeded;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['file_id'])) {
     $fileId = (int)$_POST['file_id'];
@@ -108,6 +135,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
         $uploadError = 'Chỉ chấp nhận file PDF.';
     } elseif ($file['size'] > 10 * 1024 * 1024) { // 10MB
         $uploadError = 'File quá lớn (tối đa 10MB).';
+    } elseif (($usedStorage + $file['size']) > $storageLimit) {
+        $uploadError = 'Hết dung lượng lưu trữ! Bạn đã dùng ' . number_format($usedStorage / 1024 / 1024, 2) . 'MB / ' . number_format($storageLimit / 1024 / 1024, 0) . 'MB. Vui lòng <a href="#" onclick="alert(\'Tính năng nâng cấp đang phát triển!\')" style="color:#667eea;font-weight:600;">nâng cấp</a> hoặc xóa bớt file để tiếp tục upload.';
     } elseif (!is_uploaded_file($file['tmp_name'])) {
         $uploadError = 'Tệp tải lên không hợp lệ.';
     } elseif (!$uploadAvailable) {
@@ -124,8 +153,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
         $relativePath = 'uploads/' . $fileName;  // Đường dẫn tương đối để lưu vào DB
 
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
-            $stmt = $conn->prepare("INSERT INTO uploads (user_id, file_name, file_path) VALUES (?, ?, ?)");
-            $stmt->bind_param("iss", $userId, $fileName, $relativePath);
+            $fileSize = filesize($filePath);
+            $stmt = $conn->prepare("INSERT INTO uploads (user_id, file_name, file_path, file_size) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("issi", $userId, $fileName, $relativePath, $fileSize);
             $stmt->execute();
             $stmt->close();
 
@@ -758,6 +788,122 @@ if ($userId) {
             }
         }
 
+        /* Storage Bar */
+        .storage-bar-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+
+        .storage-bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .storage-bar-header i {
+            color: #667eea;
+            margin-right: 6px;
+        }
+
+        .storage-bar-usage {
+            color: #667eea;
+        }
+
+        .storage-bar-track {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .storage-bar-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .storage-bar-fill.warning {
+            background: linear-gradient(135deg, #f0ad4e 0%, #ec971f 100%);
+        }
+
+        .storage-bar-fill.danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .storage-bar-percent {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        .storage-exceeded {
+            text-align: center;
+            padding: 40px 20px;
+            background: #fff5f5;
+            border: 2px dashed #fcc;
+            border-radius: 15px;
+        }
+
+        .storage-exceeded-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .storage-exceeded h3 {
+            font-size: 1.3rem;
+            color: #c00;
+            margin-bottom: 10px;
+        }
+
+        .storage-exceeded p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .upgrade-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #f7b731 0%, #f5a623 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(247, 183, 49, 0.3);
+        }
+
+        .upgrade-btn i {
+            font-size: 1.1rem;
+        }
+
         /* Loading Overlay */
         .loading-overlay {
             display: none;
@@ -837,7 +983,36 @@ if ($userId) {
                     </div>
                 <?php endif; ?>
 
-                <?php if ($uploadAvailable): ?>
+                <!-- Storage Bar -->
+                <div class="storage-bar-container">
+                    <div class="storage-bar-header">
+                        <span><i class="fas fa-hdd"></i> Dung lượng lưu trữ</span>
+                        <span class="storage-bar-usage"><?= number_format($usedStorage / 1024 / 1024, 2) ?>MB / <?= number_format($storageLimit / 1024 / 1024, 0) ?>MB</span>
+                    </div>
+                    <div class="storage-bar-track">
+                        <div class="storage-bar-fill <?= $storagePercent >= 90 ? 'danger' : ($storagePercent >= 70 ? 'warning' : '') ?>" style="width: <?= $storagePercent ?>%"></div>
+                    </div>
+                    <div class="storage-bar-percent"><?= $storagePercent ?>% đã sử dụng</div>
+                </div>
+
+                <?php if ($storageExceeded || $storageNearlyFull): ?>
+                    <div class="storage-exceeded">
+                        <div class="storage-exceeded-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <?php if ($storageExceeded): ?>
+                            <h3>Hết dung lượng lưu trữ!</h3>
+                            <p>Bạn đã sử dụng hết <?= number_format($storageLimit / 1024 / 1024, 0) ?>MB dung lượng miễn phí. Xóa bớt file hoặc nâng cấp để tiếp tục upload.</p>
+                        <?php else: ?>
+                            <h3>Dung lượng gần đầy!</h3>
+                            <p>Bạn đã sử dụng <?= number_format($usedStorage / 1024 / 1024, 2) ?>MB / <?= number_format($storageLimit / 1024 / 1024, 0) ?>MB (còn <?= number_format(($storageLimit - $usedStorage) / 1024, 0) ?>KB trống). Xóa bớt file hoặc nâng cấp để có thêm dung lượng.</p>
+                        <?php endif; ?>
+                        <a href="#" class="upgrade-btn" onclick="alert('Tính năng nâng cấp đang phát triển!')">
+                            <i class="fas fa-crown"></i>
+                            Nâng cấp lên Premium
+                        </a>
+                    </div>
+                <?php elseif ($uploadAvailable): ?>
                     <div class="upload-area" id="uploadArea">
                         <i class="fas fa-cloud-upload-alt upload-icon"></i>
                         <div class="upload-text">Kéo và thả file PDF vào đây</div>
@@ -968,68 +1143,70 @@ if ($userId) {
         const fileInput = document.getElementById('fileInput');
         const uploadForm = document.getElementById('uploadForm');
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, preventDefaults, false);
-        });
+        if (uploadArea && fileInput && uploadForm) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
 
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, highlight, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, unhighlight, false);
-        });
-
-        function highlight(e) {
-            uploadArea.classList.add('dragover');
-        }
-
-        function unhighlight(e) {
-            uploadArea.classList.remove('dragover');
-        }
-
-        function showUploadLoading() {
-            document.getElementById('loadingOverlay').classList.add('show');
-            const submitBtn = uploadForm.querySelector('.upload-btn');
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải lên...';
-            submitBtn.disabled = true;
-        }
-
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            
-            if (files.length > 0) {
-                fileInput.files = files;
-                showUploadLoading();
-                uploadForm.submit();
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
             }
-        }
 
-        uploadArea.addEventListener('drop', handleDrop, false);
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, highlight, false);
+            });
 
-        // Click to upload
-        uploadArea.addEventListener('click', function() {
-            fileInput.click();
-        });
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, unhighlight, false);
+            });
 
-        // File input change
-        fileInput.addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                const fileName = e.target.files[0].name;
-                if (fileName.toLowerCase().endsWith('.pdf')) {
+            function highlight(e) {
+                uploadArea.classList.add('dragover');
+            }
+
+            function unhighlight(e) {
+                uploadArea.classList.remove('dragover');
+            }
+
+            function showUploadLoading() {
+                document.getElementById('loadingOverlay').classList.add('show');
+                const submitBtn = uploadForm.querySelector('.upload-btn');
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải lên...';
+                submitBtn.disabled = true;
+            }
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    fileInput.files = files;
                     showUploadLoading();
                     uploadForm.submit();
-                } else {
-                    alert('Vui lòng chọn file PDF!');
                 }
             }
-        });
+
+            uploadArea.addEventListener('drop', handleDrop, false);
+
+            // Click to upload
+            uploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            // File input change
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    const fileName = e.target.files[0].name;
+                    if (fileName.toLowerCase().endsWith('.pdf')) {
+                        showUploadLoading();
+                        uploadForm.submit();
+                    } else {
+                        alert('Vui lòng chọn file PDF!');
+                    }
+                }
+            });
+        }
 
         // Modal functionality
         let currentFileId = null;

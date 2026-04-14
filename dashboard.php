@@ -36,13 +36,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // Get user statistics
-$stmt_files = $conn->prepare("SELECT COUNT(*) as total_files FROM uploads WHERE user_id = ?");
+$stmt_files = $conn->prepare("SELECT COUNT(*) as total_files, COALESCE(SUM(file_size), 0) as total_size FROM uploads WHERE user_id = ?");
 $stmt_files->bind_param("i", $user['id']);
 $stmt_files->execute();
 $result_files = $stmt_files->get_result();
 $stats = $result_files->fetch_assoc();
-$stats['total_size'] = 0; // Default to 0 since we don't have file_size column
 $stmt_files->close();
+
+// Get storage limit
+$stmt_sl = $conn->prepare("SELECT storage_limit FROM users WHERE id = ?");
+$stmt_sl->bind_param("i", $user['id']);
+$stmt_sl->execute();
+$result_sl = $stmt_sl->get_result();
+$sl_row = $result_sl->fetch_assoc();
+$storageLimit = $sl_row['storage_limit'] ?? 5242880;
+$stmt_sl->close();
+$storagePercent = $storageLimit > 0 ? min(100, round(($stats['total_size'] / $storageLimit) * 100, 1)) : 0;
+$storageExceeded = $stats['total_size'] >= $storageLimit;
+$storageNearlyFull = $storagePercent >= 90 && !$storageExceeded;
 
 // Get recent files
 $stmt_recent = $conn->prepare("SELECT id, file_name, file_path, uploaded_at FROM uploads WHERE user_id = ? ORDER BY uploaded_at DESC LIMIT 5");
@@ -587,6 +598,83 @@ $stmt_recent->close();
                 font-size: 0.9rem;
             }
         }
+        /* Storage Upgrade Banner */
+        .storage-upgrade-banner {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+            border: 2px dashed #fcc;
+            border-radius: 15px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .storage-upgrade-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .storage-upgrade-info .upgrade-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .storage-upgrade-info h3 {
+            font-size: 1.1rem;
+            color: #c00;
+            margin-bottom: 4px;
+        }
+
+        .storage-upgrade-info p {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .upgrade-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #f7b731 0%, #f5a623 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(247, 183, 49, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .storage-upgrade-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+            .storage-upgrade-info {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -629,6 +717,29 @@ $stmt_recent->close();
             </div>
         <?php endif; ?>
 
+        <?php if ($storageExceeded || $storageNearlyFull): ?>
+            <div class="storage-upgrade-banner">
+                <div class="storage-upgrade-info">
+                    <div class="upgrade-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <?php if ($storageExceeded): ?>
+                            <h3>Hết dung lượng lưu trữ!</h3>
+                            <p>Bạn đã sử dụng hết <?= number_format($storageLimit / 1024 / 1024, 0) ?>MB dung lượng miễn phí. Xóa bớt file hoặc nâng cấp để tiếp tục upload.</p>
+                        <?php else: ?>
+                            <h3>Dung lượng gần đầy!</h3>
+                            <p>Đã dùng <?= number_format($stats['total_size'] / 1024 / 1024, 2) ?>MB / <?= number_format($storageLimit / 1024 / 1024, 0) ?>MB (còn <?= number_format(($storageLimit - $stats['total_size']) / 1024, 0) ?>KB trống).</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <a href="#" class="upgrade-btn" onclick="alert('Tính năng nâng cấp đang phát triển!')">
+                    <i class="fas fa-crown"></i>
+                    Nâng cấp Premium
+                </a>
+            </div>
+        <?php endif; ?>
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">
@@ -643,7 +754,10 @@ $stmt_recent->close();
                     <i class="fas fa-database"></i>
                 </div>
                 <div class="stat-value"><?= $stats['total_size'] ? number_format($stats['total_size'] / 1024 / 1024, 2) : '0.00' ?> MB</div>
-                <div class="stat-label">Dung lượng đã dùng</div>
+                <div class="stat-label">Dung lượng (<?= $storagePercent ?>% / <?= number_format($storageLimit / 1024 / 1024, 0) ?>MB)</div>
+                <div style="margin-top: 10px; background: #e0e0e0; border-radius: 5px; height: 8px; overflow: hidden;">
+                    <div style="height: 100%; border-radius: 5px; width: <?= $storagePercent ?>%; background: <?= $storagePercent >= 90 ? 'linear-gradient(135deg, #dc3545, #c82333)' : ($storagePercent >= 70 ? 'linear-gradient(135deg, #f0ad4e, #ec971f)' : 'linear-gradient(135deg, #667eea, #764ba2)') ?>;"></div>
+                </div>
             </div>
             
             <div class="stat-card">
