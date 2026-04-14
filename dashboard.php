@@ -285,9 +285,9 @@ $stmt_recent->close();
             font-weight: 600;
             color: #333;
             margin-bottom: 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            hyphens: auto;
         }
 
         .file-date {
