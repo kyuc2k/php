@@ -75,13 +75,15 @@ if ($resultCode == 0) {
         file_put_contents(__DIR__ . '/momo_ipn.log', date('[Y-m-d H:i:s] ') . "SUCCESS: Payment {$payment['id']} upgraded user {$payment['user_id']} to {$payment['plan']}\n", FILE_APPEND);
     }
 } else {
-    // Payment failed - update status
-    $stmt = $conn->prepare("UPDATE payments SET status = 'failed' WHERE order_id = ?");
-    $stmt->bind_param("s", $orderId);
-    $stmt->execute();
-    $stmt->close();
+    // Only mark as failed for definitive error codes (not 99 = unknown/pending)
+    if ($resultCode != 99 && $resultCode != 1000 && $resultCode != 1001) {
+        $stmt = $conn->prepare("UPDATE payments SET status = 'failed' WHERE order_id = ?");
+        $stmt->bind_param("s", $orderId);
+        $stmt->execute();
+        $stmt->close();
+    }
 
-    file_put_contents(__DIR__ . '/momo_ipn.log', date('[Y-m-d H:i:s] ') . "FAILED: Order {$orderId} resultCode={$resultCode}\n", FILE_APPEND);
+    file_put_contents(__DIR__ . '/momo_ipn.log', date('[Y-m-d H:i:s] ') . "NOT SUCCESS: Order {$orderId} resultCode={$resultCode}\n", FILE_APPEND);
 }
 
 // Respond to MoMo

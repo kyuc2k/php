@@ -24,11 +24,15 @@ $conn->query(
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 );
 
-// MoMo API credentials
+// Environment config
+$momoEnv   = getenv('MOMO_ENV') ?: 'production';
+$momoPhone = getenv('MOMO_PHONE') ?: '0399003489';
+$momoName  = getenv('MOMO_NAME') ?: 'DUONG HOANG KHANG';
+
+// MoMo API credentials (used in sandbox mode)
 $partnerCode = getenv('MOMO_PARTNER_CODE') ?: 'MOMOBKUN20180529';
 $accessKey   = getenv('MOMO_ACCESS_KEY') ?: 'klm05TvNBzhg7h7j';
 $secretKey   = getenv('MOMO_SECRET_KEY') ?: 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa';
-$endpoint    = getenv('MOMO_ENDPOINT') ?: 'https://test-payment.momo.vn/v2/gateway/api/create';
 
 // Validate plan
 $plans = [
@@ -58,75 +62,153 @@ if ($currentLimit >= $plan['size']) {
     exit();
 }
 
-// Build MoMo API request
-$orderId    = $partnerCode . '_' . $userId . '_' . time();
-$requestId  = $orderId . '_req';
-$amount     = (string)$plan['price'];
-$orderInfo  = 'Nang cap ' . $plan['short'] . ' - User ' . $userId;
-$extraData  = base64_encode(json_encode(['plan' => $planKey, 'user_id' => $userId]));
+// Clean up old pending payments (older than 30 minutes)
+$stmt_clean = $conn->prepare("DELETE FROM payments WHERE user_id = ? AND status = 'pending' AND created_at < DATE_SUB(NOW(), INTERVAL 30 MINUTE)");
+$stmt_clean->bind_param("i", $userId);
+$stmt_clean->execute();
+$stmt_clean->close();
 
-// URLs - detect base URL automatically
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$baseUrl  = $protocol . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']);
-$redirectUrl = $baseUrl . '/momo_return.php';
-$ipnUrl      = $baseUrl . '/momo_ipn.php';
+// Check for existing recent pending payment for same plan
+$stmt_exist = $conn->prepare("SELECT order_id, request_id FROM payments WHERE user_id = ? AND plan = ? AND status = 'pending' AND created_at > DATE_SUB(NOW(), INTERVAL 30 MINUTE) ORDER BY id DESC LIMIT 1");
+$stmt_exist->bind_param("is", $userId, $planKey);
+$stmt_exist->execute();
+$existingPayment = $stmt_exist->get_result()->fetch_assoc();
+$stmt_exist->close();
 
-$requestType = 'captureWallet';
+// Handle manual confirmation (production mode)
+$confirmError = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_payment']) && $momoEnv === 'production') {
+    $transactionId = trim($_POST['transaction_id'] ?? '');
+    $postOrderId = $_POST['order_id'] ?? '';
 
-// Create HMAC SHA256 signature
-$rawSignature = "accessKey={$accessKey}&amount={$amount}&extraData={$extraData}&ipnUrl={$ipnUrl}&orderId={$orderId}&orderInfo={$orderInfo}&partnerCode={$partnerCode}&redirectUrl={$redirectUrl}&requestId={$requestId}&requestType={$requestType}";
-$signature = hash_hmac('sha256', $rawSignature, $secretKey);
+    if (empty($transactionId)) {
+        $confirmError = 'Vui lòng nhập mã giao dịch MoMo.';
+    } else {
+        // Check duplicate transaction ID
+        $stmt_chk = $conn->prepare("SELECT id FROM payments WHERE transaction_id = ?");
+        $stmt_chk->bind_param("s", $transactionId);
+        $stmt_chk->execute();
+        if ($stmt_chk->get_result()->num_rows > 0) {
+            $confirmError = 'Mã giao dịch này đã được sử dụng!';
+        } else {
+            // Update payment
+            $stmt_up = $conn->prepare("UPDATE payments SET status = 'completed', transaction_id = ?, completed_at = NOW() WHERE order_id = ? AND user_id = ? AND status = 'pending'");
+            $stmt_up->bind_param("ssi", $transactionId, $postOrderId, $userId);
+            $stmt_up->execute();
 
-// API request body
-$requestBody = [
-    'partnerCode' => $partnerCode,
-    'partnerName' => 'Upload PDF Storage',
-    'storeId'     => 'PDFUploadStore',
-    'requestId'   => $requestId,
-    'amount'      => (int)$amount,
-    'orderId'     => $orderId,
-    'orderInfo'   => $orderInfo,
-    'redirectUrl' => $redirectUrl,
-    'ipnUrl'      => $ipnUrl,
-    'lang'        => 'vi',
-    'extraData'   => $extraData,
-    'requestType' => $requestType,
-    'signature'   => $signature,
-];
+            if ($stmt_up->affected_rows > 0) {
+                // Upgrade user storage
+                $stmt_user = $conn->prepare("UPDATE users SET storage_limit = ? WHERE id = ?");
+                $stmt_user->bind_param("ii", $plan['size'], $userId);
+                $stmt_user->execute();
+                $stmt_user->close();
 
-// Call MoMo API
-$ch = curl_init($endpoint);
-curl_setopt_array($ch, [
-    CURLOPT_POST           => true,
-    CURLOPT_POSTFIELDS     => json_encode($requestBody),
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-    CURLOPT_TIMEOUT        => 30,
-    CURLOPT_SSL_VERIFYPEER => false,
-]);
-$response = curl_exec($ch);
-$curlError = curl_error($ch);
-curl_close($ch);
+                $_SESSION['upgrade_message'] = 'Thanh toán thành công! Đã nâng cấp lên ' . $plan['short'] . '.';
+                $_SESSION['upgrade_message_type'] = 'success';
+                header("Location: upgrade.php");
+                exit();
+            } else {
+                $confirmError = 'Đơn hàng không hợp lệ hoặc đã xử lý.';
+            }
+            $stmt_up->close();
+        }
+        $stmt_chk->close();
+    }
+}
+
+// Generate order ID
+if ($existingPayment) {
+    $orderId   = $existingPayment['order_id'];
+    $requestId = $existingPayment['request_id'];
+} else {
+    $orderId   = 'UP' . $userId . 'T' . time();
+    $requestId = $orderId . '_req';
+}
 
 $momoError = '';
-$payUrl = '';
-$qrCodeUrl = '';
+$payUrl    = '';
+$deeplink  = '';
 
-if ($curlError) {
-    $momoError = 'Không thể kết nối đến MoMo: ' . $curlError;
-} else {
-    $result = json_decode($response, true);
-    if (isset($result['resultCode']) && $result['resultCode'] == 0) {
-        $payUrl    = $result['payUrl'] ?? '';
-        $qrCodeUrl = $result['qrCodeUrl'] ?? '';
+if ($momoEnv === 'production') {
+    // ===== PRODUCTION: Personal MoMo QR transfer =====
+    $transferContent = $orderId;
+    $qrData = "2|99|{$momoPhone}|||0|0|{$plan['price']}|{$transferContent}||transfer_myqr";
 
-        // Save pending payment to DB
+    // Save payment to DB (if new)
+    if (!$existingPayment) {
         $stmt_ins = $conn->prepare("INSERT INTO payments (user_id, plan, amount, storage_bytes, order_id, request_id, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')");
         $stmt_ins->bind_param("isiiss", $userId, $planKey, $plan['price'], $plan['size'], $orderId, $requestId);
         $stmt_ins->execute();
         $stmt_ins->close();
+    }
+} else {
+    // ===== SANDBOX: MoMo API =====
+    $endpoint = 'https://test-payment.momo.vn/v2/gateway/api/create';
+    $amount    = (string)$plan['price'];
+    $orderInfo = 'Nang cap ' . $plan['short'] . ' - User ' . $userId;
+    $extraData = base64_encode(json_encode(['plan' => $planKey, 'user_id' => $userId]));
+
+    $protocol    = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $baseUrl     = $protocol . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['SCRIPT_NAME']);
+    $redirectUrl = $baseUrl . '/momo_return.php';
+    $ipnUrl      = $baseUrl . '/momo_ipn.php';
+    $requestType = 'captureWallet';
+
+    if (!$existingPayment) {
+        $requestId = $orderId . '_req';
     } else {
-        $momoError = 'MoMo trả lỗi: ' . ($result['message'] ?? 'Không xác định') . ' (Code: ' . ($result['resultCode'] ?? '?') . ')';
+        $requestId = $orderId . '_req_' . time();
+    }
+
+    $rawSignature = "accessKey={$accessKey}&amount={$amount}&extraData={$extraData}&ipnUrl={$ipnUrl}&orderId={$orderId}&orderInfo={$orderInfo}&partnerCode={$partnerCode}&redirectUrl={$redirectUrl}&requestId={$requestId}&requestType={$requestType}";
+    $signature = hash_hmac('sha256', $rawSignature, $secretKey);
+
+    $requestBody = [
+        'partnerCode' => $partnerCode,
+        'partnerName' => 'Upload PDF Storage',
+        'storeId'     => 'PDFUploadStore',
+        'requestId'   => $requestId,
+        'amount'      => (int)$amount,
+        'orderId'     => $orderId,
+        'orderInfo'   => $orderInfo,
+        'redirectUrl' => $redirectUrl,
+        'ipnUrl'      => $ipnUrl,
+        'lang'        => 'vi',
+        'extraData'   => $extraData,
+        'requestType' => $requestType,
+        'signature'   => $signature,
+    ];
+
+    $ch = curl_init($endpoint);
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => json_encode($requestBody),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_SSL_VERIFYPEER => false,
+    ]);
+    $response  = curl_exec($ch);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($curlError) {
+        $momoError = 'Không thể kết nối đến MoMo: ' . $curlError;
+    } else {
+        $result = json_decode($response, true);
+        if (isset($result['resultCode']) && $result['resultCode'] == 0) {
+            $payUrl   = $result['payUrl'] ?? '';
+            $deeplink = $result['deeplink'] ?? '';
+
+            if (!$existingPayment) {
+                $stmt_ins = $conn->prepare("INSERT INTO payments (user_id, plan, amount, storage_bytes, order_id, request_id, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')");
+                $stmt_ins->bind_param("isiiss", $userId, $planKey, $plan['price'], $plan['size'], $orderId, $requestId);
+                $stmt_ins->execute();
+                $stmt_ins->close();
+            }
+        } else {
+            $momoError = 'MoMo trả lỗi: ' . ($result['message'] ?? 'Không xác định') . ' (Code: ' . ($result['resultCode'] ?? '?') . ')';
+        }
     }
 }
 ?>
@@ -599,148 +681,299 @@ if ($curlError) {
                 <i class="fas fa-wallet"></i>
                 <h1>Thanh toán MoMo</h1>
             </div>
-            <a href="upgrade.php" class="btn-back">
-                <i class="fas fa-arrow-left"></i>
-                Quay lại
-            </a>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <a href="upgrade.php" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Quay lại
+                </a>
+            </div>
         </header>
 
-        <?php if ($momoError): ?>
-            <div class="payment-card">
-                <div class="message message-error">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <?= htmlspecialchars($momoError) ?>
+        <div class="payment-card">
+            <!-- Order Summary -->
+            <div class="order-summary">
+                <div class="order-plan">
+                    <div class="order-plan-icon">
+                        <i class="fas <?= $planKey === '2gb' ? 'fa-rocket' : 'fa-database' ?>"></i>
+                    </div>
+                    <div>
+                        <div class="order-plan-name"><?= htmlspecialchars($plan['label']) ?></div>
+                        <div class="order-plan-desc">Dung lượng lưu trữ <?= $plan['short'] ?></div>
+                    </div>
                 </div>
-                <div style="text-align: center; padding: 20px 0;">
-                    <p style="color: #666; margin-bottom: 20px;">Không thể tạo đơn thanh toán. Vui lòng thử lại.</p>
-                    <a href="payment.php?plan=<?= htmlspecialchars($planKey) ?>" class="confirm-btn" style="display: inline-flex; text-decoration: none; width: auto; padding: 14px 30px;">
-                        <i class="fas fa-redo"></i>
-                        Thử lại
+                <div class="order-price">
+                    <?= number_format($plan['price'], 0, ',', '.') ?> <span>VNĐ</span>
+                </div>
+            </div>
+
+            <?php if ($momoEnv === 'sandbox' && $momoError): ?>
+            <!-- Sandbox Error -->
+            <div class="message message-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <?= htmlspecialchars($momoError) ?>
+            </div>
+            <div style="text-align: center; padding: 20px 0;">
+                <p style="color: #666; margin-bottom: 20px;">Không thể tạo đơn thanh toán. Vui lòng thử lại.</p>
+                <a href="payment.php?plan=<?= htmlspecialchars($planKey) ?>" class="confirm-btn" style="display: inline-flex; text-decoration: none; width: auto; padding: 14px 30px;">
+                    <i class="fas fa-redo"></i> Thử lại
+                </a>
+            </div>
+            <?php else: ?>
+
+            <?php if ($momoEnv === 'production'): ?>
+            <!-- ========== PRODUCTION MODE: Personal QR Transfer ========== -->
+            <!-- Timer -->
+            <div class="timer-bar">
+                <i class="fas fa-clock"></i>
+                Giao dịch hết hạn sau: <strong id="countdown">30:00</strong>
+            </div>
+
+            <!-- Steps -->
+            <div class="payment-steps">
+                <h3><i class="fas fa-list-ol"></i> Hướng dẫn thanh toán</h3>
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">Mở ứng dụng <strong>MoMo</strong> → chọn <strong>"Quét mã QR"</strong></div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">Quét mã QR bên dưới (tự động điền SĐT, số tiền, nội dung)</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">Xác nhận chuyển <strong><?= number_format($plan['price'], 0, ',', '.') ?> VNĐ</strong> trên MoMo</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-text">Nhập <strong>mã giao dịch</strong> từ MoMo để xác nhận nâng cấp</div>
+                </div>
+            </div>
+
+            <!-- QR Code -->
+            <div class="qr-section">
+                <div class="momo-logo">
+                    <div class="momo-logo-circle">M</div>
+                    <span>MoMo</span>
+                </div>
+                <h3>Quét mã để chuyển tiền</h3>
+                <div class="qr-subtitle">Mở MoMo → Quét mã QR → Tự động điền thông tin</div>
+                <div class="qr-wrapper">
+                    <div id="qrcode"></div>
+                </div>
+            </div>
+
+            <!-- Transfer Info -->
+            <div class="transfer-info">
+                <h4><i class="fas fa-info-circle"></i> Thông tin chuyển khoản (nếu không quét được QR)</h4>
+                <div class="transfer-row">
+                    <span class="transfer-label">Số điện thoại</span>
+                    <span class="transfer-value">
+                        <?= htmlspecialchars($momoPhone) ?>
+                        <button class="copy-btn" onclick="copyText('<?= htmlspecialchars($momoPhone) ?>', this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </span>
+                </div>
+                <div class="transfer-row">
+                    <span class="transfer-label">Chủ tài khoản</span>
+                    <span class="transfer-value"><?= htmlspecialchars($momoName) ?></span>
+                </div>
+                <div class="transfer-row">
+                    <span class="transfer-label">Số tiền</span>
+                    <span class="transfer-value" style="color: #ae2070; font-size: 1.05rem;">
+                        <?= number_format($plan['price'], 0, ',', '.') ?> VNĐ
+                        <button class="copy-btn" onclick="copyText('<?= $plan['price'] ?>', this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </span>
+                </div>
+                <div class="transfer-row">
+                    <span class="transfer-label">Nội dung CK</span>
+                    <span class="transfer-value">
+                        <?= htmlspecialchars($transferContent) ?>
+                        <button class="copy-btn" onclick="copyText('<?= htmlspecialchars($transferContent) ?>', this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Confirm Payment -->
+            <div class="confirm-section">
+                <h3><i class="fas fa-check-circle"></i> Xác nhận đã thanh toán</h3>
+
+                <?php if ($confirmError): ?>
+                    <div class="message message-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <?= htmlspecialchars($confirmError) ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="post" action="payment.php?plan=<?= htmlspecialchars($planKey) ?>">
+                    <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderId) ?>">
+                    <div class="form-group">
+                        <label for="transaction_id">Mã giao dịch MoMo</label>
+                        <input type="text" id="transaction_id" name="transaction_id" placeholder="Nhập mã giao dịch từ MoMo..." required>
+                        <div class="input-hint">Sau khi chuyển tiền thành công, mở lịch sử giao dịch MoMo → copy mã giao dịch (VD: T24041912345678)</div>
+                    </div>
+                    <button type="submit" name="confirm_payment" value="1" class="confirm-btn">
+                        <i class="fas fa-check"></i>
+                        Xác nhận đã thanh toán
+                    </button>
+                </form>
+            </div>
+
+            <?php else: ?>
+            <!-- ========== SANDBOX MODE: MoMo API ========== -->
+            <div style="background: #fff3cd; border: 1px solid #f0ad4e; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.85rem; color: #856404; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-info-circle"></i>
+                <span>Đang dùng <strong>MoMo Sandbox</strong> — quét QR bằng <strong>app MoMo Test</strong> (không mất tiền thật).</span>
+            </div>
+
+            <!-- Timer -->
+            <div class="timer-bar">
+                <i class="fas fa-clock"></i>
+                Giao dịch hết hạn sau: <strong id="countdown">15:00</strong>
+            </div>
+
+            <!-- Steps -->
+            <div class="payment-steps">
+                <h3><i class="fas fa-list-ol"></i> Hướng dẫn thanh toán</h3>
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">Mở ứng dụng <strong>MoMo Test</strong> trên điện thoại</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">Quét mã QR bên dưới hoặc bấm <strong>"Mở MoMo"</strong></div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">Xác nhận thanh toán <strong><?= number_format($plan['price'], 0, ',', '.') ?> VNĐ</strong> trên MoMo Test</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-text">Hệ thống <strong>tự động xác nhận</strong> và nâng cấp tài khoản</div>
+                </div>
+            </div>
+
+            <!-- QR Code -->
+            <div class="qr-section">
+                <div class="momo-logo">
+                    <div class="momo-logo-circle">M</div>
+                    <span>MoMo</span>
+                </div>
+                <h3>Quét mã để thanh toán</h3>
+                <div class="qr-subtitle">Sử dụng app MoMo Test để quét</div>
+                <div class="qr-wrapper">
+                    <div id="qrcode"></div>
+                </div>
+            </div>
+
+            <!-- Order Info -->
+            <div class="transfer-info">
+                <h4><i class="fas fa-info-circle"></i> Thông tin đơn hàng</h4>
+                <div class="transfer-row">
+                    <span class="transfer-label">Mã đơn hàng</span>
+                    <span class="transfer-value"><?= htmlspecialchars($orderId) ?></span>
+                </div>
+                <div class="transfer-row">
+                    <span class="transfer-label">Gói nâng cấp</span>
+                    <span class="transfer-value"><?= htmlspecialchars($plan['label']) ?></span>
+                </div>
+                <div class="transfer-row">
+                    <span class="transfer-label">Số tiền</span>
+                    <span class="transfer-value" style="color: #ae2070; font-size: 1.05rem;">
+                        <?= number_format($plan['price'], 0, ',', '.') ?> VNĐ
+                    </span>
+                </div>
+                <div class="transfer-row">
+                    <span class="transfer-label">Trạng thái</span>
+                    <span class="transfer-value" id="paymentStatus" style="color: #f0ad4e;">
+                        <i class="fas fa-spinner fa-spin"></i> Chờ thanh toán...
+                    </span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <?php if ($payUrl): ?>
+                    <a href="<?= htmlspecialchars($payUrl) ?>" target="_blank" class="confirm-btn" style="text-decoration: none; background: linear-gradient(135deg, #ae2070, #d63384);">
+                        <i class="fas fa-external-link-alt"></i>
+                        Mở MoMo để thanh toán
                     </a>
+                <?php endif; ?>
+                <div style="text-align: center; font-size: 0.85rem; color: #999;">
+                    <i class="fas fa-shield-alt"></i> Hệ thống sẽ tự động xác nhận sau khi thanh toán thành công.
                 </div>
             </div>
-        <?php else: ?>
-            <div class="payment-card">
-                <!-- Order Summary -->
-                <div class="order-summary">
-                    <div class="order-plan">
-                        <div class="order-plan-icon">
-                            <i class="fas <?= $planKey === '2gb' ? 'fa-rocket' : 'fa-database' ?>"></i>
-                        </div>
-                        <div>
-                            <div class="order-plan-name"><?= htmlspecialchars($plan['label']) ?></div>
-                            <div class="order-plan-desc">Dung lượng lưu trữ <?= $plan['short'] ?></div>
-                        </div>
-                    </div>
-                    <div class="order-price">
-                        <?= number_format($plan['price'], 0, ',', '.') ?> <span>VNĐ</span>
-                    </div>
-                </div>
-
-                <!-- Timer -->
-                <div class="timer-bar">
-                    <i class="fas fa-clock"></i>
-                    Giao dịch hết hạn sau: <strong id="countdown">15:00</strong>
-                </div>
-
-                <!-- Steps -->
-                <div class="payment-steps">
-                    <h3><i class="fas fa-list-ol"></i> Hướng dẫn thanh toán</h3>
-                    <div class="step">
-                        <div class="step-num">1</div>
-                        <div class="step-text">Mở ứng dụng <strong>MoMo</strong> trên điện thoại</div>
-                    </div>
-                    <div class="step">
-                        <div class="step-num">2</div>
-                        <div class="step-text">Quét mã QR bên dưới hoặc bấm <strong>"Mở MoMo"</strong> để thanh toán</div>
-                    </div>
-                    <div class="step">
-                        <div class="step-num">3</div>
-                        <div class="step-text">Xác nhận thanh toán <strong><?= number_format($plan['price'], 0, ',', '.') ?> VNĐ</strong> trên MoMo</div>
-                    </div>
-                    <div class="step">
-                        <div class="step-num">4</div>
-                        <div class="step-text">Hệ thống <strong>tự động xác nhận</strong> và nâng cấp tài khoản</div>
-                    </div>
-                </div>
-
-                <!-- QR Code -->
-                <div class="qr-section">
-                    <div class="momo-logo">
-                        <div class="momo-logo-circle">M</div>
-                        <span>MoMo</span>
-                    </div>
-                    <h3>Quét mã để thanh toán</h3>
-                    <div class="qr-subtitle">Sử dụng ứng dụng MoMo để quét</div>
-                    <div class="qr-wrapper">
-                        <?php if ($qrCodeUrl): ?>
-                            <img src="<?= htmlspecialchars($qrCodeUrl) ?>" alt="MoMo QR Code" width="220" height="220" style="display: block;">
-                        <?php else: ?>
-                            <div id="qrcode"></div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- Transfer Info -->
-                <div class="transfer-info">
-                    <h4><i class="fas fa-info-circle"></i> Thông tin đơn hàng</h4>
-                    <div class="transfer-row">
-                        <span class="transfer-label">Mã đơn hàng</span>
-                        <span class="transfer-value">
-                            <?= htmlspecialchars($orderId) ?>
-                        </span>
-                    </div>
-                    <div class="transfer-row">
-                        <span class="transfer-label">Gói nâng cấp</span>
-                        <span class="transfer-value"><?= htmlspecialchars($plan['label']) ?></span>
-                    </div>
-                    <div class="transfer-row">
-                        <span class="transfer-label">Số tiền</span>
-                        <span class="transfer-value" style="color: #ae2070; font-size: 1.05rem;">
-                            <?= number_format($plan['price'], 0, ',', '.') ?> VNĐ
-                        </span>
-                    </div>
-                    <div class="transfer-row">
-                        <span class="transfer-label">Trạng thái</span>
-                        <span class="transfer-value" id="paymentStatus" style="color: #f0ad4e;">
-                            <i class="fas fa-spinner fa-spin"></i> Chờ thanh toán...
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <?php if ($payUrl): ?>
-                        <a href="<?= htmlspecialchars($payUrl) ?>" class="confirm-btn" style="text-decoration: none; background: linear-gradient(135deg, #ae2070, #d63384);">
-                            <i class="fas fa-external-link-alt"></i>
-                            Mở MoMo để thanh toán
-                        </a>
-                    <?php endif; ?>
-                    <div style="text-align: center; font-size: 0.85rem; color: #999;">
-                        <i class="fas fa-shield-alt"></i> Giao dịch được bảo mật bởi MoMo. Hệ thống sẽ tự động xác nhận sau khi thanh toán.
-                    </div>
-                </div>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
+            <?php endif; ?>
+        </div>
     </div>
 
     <script>
-        <?php if (!$momoError && !$qrCodeUrl && $payUrl): ?>
-        // Fallback: generate QR from payUrl if MoMo didn't return qrCodeUrl
-        var qrEl = document.getElementById("qrcode");
-        if (qrEl) {
-            new QRCode(qrEl, {
-                text: <?= json_encode($payUrl) ?>,
-                width: 220,
-                height: 220,
-                colorDark: "#ae2070",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+        <?php if ($momoEnv === 'production'): ?>
+        // Generate personal MoMo QR code
+        new QRCode(document.getElementById("qrcode"), {
+            text: <?= json_encode($qrData) ?>,
+            width: 220,
+            height: 220,
+            colorDark: "#ae2070",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        // Copy to clipboard
+        function copyText(text, btn) {
+            navigator.clipboard.writeText(text).then(function() {
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                btn.classList.add('copied');
+                setTimeout(function() {
+                    btn.innerHTML = '<i class="fas fa-copy"></i>';
+                    btn.classList.remove('copied');
+                }, 2000);
             });
         }
+
+        // Countdown timer (30 minutes for production)
+        let totalSeconds = 30 * 60;
+        const countdownEl = document.getElementById('countdown');
+
+        function updateCountdown() {
+            if (!countdownEl) return;
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            countdownEl.textContent = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+
+            if (totalSeconds <= 0) {
+                countdownEl.textContent = 'Hết hạn!';
+                countdownEl.style.color = '#dc3545';
+                return;
+            }
+            totalSeconds--;
+            setTimeout(updateCountdown, 1000);
+        }
+        updateCountdown();
+
+        <?php elseif (!$momoError): ?>
+        <?php
+        // Use deeplink for QR if available, otherwise payUrl
+        $qrText = $deeplink ?: $payUrl;
+        ?>
+        <?php if ($qrText): ?>
+        // Generate QR code from MoMo deeplink/payUrl
+        new QRCode(document.getElementById("qrcode"), {
+            text: <?= json_encode($qrText) ?>,
+            width: 220,
+            height: 220,
+            colorDark: "#ae2070",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
         <?php endif; ?>
 
-        // Countdown timer (15 minutes)
+        // Countdown timer (15 minutes for sandbox)
         let totalSeconds = 15 * 60;
         const countdownEl = document.getElementById('countdown');
 
@@ -760,7 +993,6 @@ if ($curlError) {
         }
         updateCountdown();
 
-        <?php if (!$momoError): ?>
         // Auto-poll payment status every 5 seconds
         const orderId = <?= json_encode($orderId) ?>;
         let pollInterval = setInterval(function() {
@@ -783,9 +1015,7 @@ if ($curlError) {
         }, 5000);
 
         // Stop polling after 15 minutes
-        setTimeout(function() {
-            clearInterval(pollInterval);
-        }, 15 * 60 * 1000);
+        setTimeout(function() { clearInterval(pollInterval); }, 15 * 60 * 1000);
         <?php endif; ?>
     </script>
 </body>
