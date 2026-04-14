@@ -757,9 +757,53 @@ if ($userId) {
                 height: 35px;
             }
         }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Đang tải lên...</div>
+    </div>
     <div class="upload-container">
         <header>
             <div class="header-title">
@@ -949,12 +993,20 @@ if ($userId) {
             uploadArea.classList.remove('dragover');
         }
 
+        function showUploadLoading() {
+            document.getElementById('loadingOverlay').classList.add('show');
+            const submitBtn = uploadForm.querySelector('.upload-btn');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải lên...';
+            submitBtn.disabled = true;
+        }
+
         function handleDrop(e) {
             const dt = e.dataTransfer;
             const files = dt.files;
             
             if (files.length > 0) {
                 fileInput.files = files;
+                showUploadLoading();
                 uploadForm.submit();
             }
         }
@@ -971,18 +1023,12 @@ if ($userId) {
             if (e.target.files.length > 0) {
                 const fileName = e.target.files[0].name;
                 if (fileName.toLowerCase().endsWith('.pdf')) {
+                    showUploadLoading();
                     uploadForm.submit();
                 } else {
                     alert('Vui lòng chọn file PDF!');
                 }
             }
-        });
-
-        // Progress indication (optional enhancement)
-        uploadForm.addEventListener('submit', function() {
-            const submitBtn = this.querySelector('.upload-btn');
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải lên...';
-            submitBtn.disabled = true;
         });
 
         // Modal functionality
