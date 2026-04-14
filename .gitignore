@@ -2,6 +2,7 @@
 settings.json
 *.sql
 *.pdf
+*.ini
 Caddyfile
 Dockerfile
 docker-compose.yml
