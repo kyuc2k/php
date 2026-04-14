@@ -13,78 +13,62 @@ $google_login_url = "https://accounts.google.com/o/oauth2/auth?"
     . "&scope=email profile"
     . "&access_type=online";
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
+    $name = $_POST['name'];
     $email = $_POST['email'];
     $password = $_POST['password'];
+    $repassword = $_POST['repassword'];
 
-    $stmt = $conn->prepare("SELECT id, name, password, email_verified FROM users WHERE email = ? AND password IS NOT NULL");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        if (password_verify($password, $row['password'])) {
-            if ($row['email_verified'] == 1) {
-                // Generate unique session token
-                $sessionToken = bin2hex(random_bytes(32));
-                $stmt_token = $conn->prepare("UPDATE users SET session_token = ? WHERE id = ?");
-                $stmt_token->bind_param("si", $sessionToken, $row['id']);
-                $stmt_token->execute();
-                $stmt_token->close();
+    // Check if email exists
+    $stmt_check = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt_check->bind_param("s", $email);
+    $stmt_check->execute();
+    $result_check = $stmt_check->get_result();
+    if ($result_check->num_rows > 0) {
+        $message = "Email already registered.";
+        $stmt_check->close();
+    } elseif ($password !== $repassword) {
+        $message = "Passwords do not match.";
+    } else {
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        $code = rand(100000, 999999);
 
-                $_SESSION['user'] = [
-                    'id' => $row['id'],
-                    'name' => $row['name'],
-                    'email' => $email,
-                ];
-                $_SESSION['session_token'] = $sessionToken;
-                header("Location: dashboard.php");
+        $stmt = $conn->prepare("INSERT INTO users (name, email, password, verification_code, email_verified, verification_code_expires) VALUES (?, ?, ?, ?, 0, DATE_ADD(NOW(), INTERVAL 5 MINUTE))");
+        $stmt->bind_param("ssss", $name, $email, $password_hash, $code);
+        if ($stmt->execute()) {
+            // Send email using PHPMailer
+            require 'PHPMailer/src/PHPMailer.php';
+            require 'PHPMailer/src/SMTP.php';
+            require 'PHPMailer/src/Exception.php';
+
+            $mail = new PHPMailer\PHPMailer\PHPMailer();
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = getenv('GMAIL_USERNAME');
+            $mail->Password = getenv('GMAIL_APP_PASSWORD');
+            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = 587;
+
+            $mail->setFrom(getenv('GMAIL_USERNAME'), 'Your App');
+            $mail->addAddress($email);
+
+            $mail->isHTML(false);
+            $mail->Subject = "Verification Code";
+            $mail->Body = "Your verification code is: $code";
+
+            if ($mail->send()) {
+                $_SESSION['email'] = $email;
+                header("Location: verify.php");
                 exit();
             } else {
-                // Email not verified - redirect to verification page
-                $_SESSION['email'] = $email;
-                $message = "Please verify your email before logging in. A verification code has been sent to your email.";
-                
-                // Generate and send new verification code
-                $code = rand(100000, 999999);
-                $stmt_update = $conn->prepare("UPDATE users SET verification_code = ?, verification_code_expires = DATE_ADD(NOW(), INTERVAL 5 MINUTE) WHERE email = ?");
-                $stmt_update->bind_param("ss", $code, $email);
-                $stmt_update->execute();
-                $stmt_update->close();
-                
-                // Send email using PHPMailer
-                require 'PHPMailer/src/PHPMailer.php';
-                require 'PHPMailer/src/SMTP.php';
-                require 'PHPMailer/src/Exception.php';
-
-                $mail = new PHPMailer\PHPMailer\PHPMailer();
-                $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com';
-                $mail->SMTPAuth = true;
-                $mail->Username = getenv('GMAIL_USERNAME');
-                $mail->Password = getenv('GMAIL_APP_PASSWORD');
-                $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port = 587;
-
-                $mail->setFrom(getenv('GMAIL_USERNAME'), 'Your App');
-                $mail->addAddress($email);
-
-                $mail->isHTML(false);
-                $mail->Subject = "Email Verification Code";
-                $mail->Body = "Your verification code is: $code";
-
-                if ($mail->send()) {
-                    header("Location: verify.php");
-                    exit();
-                }
+                $message = "Failed to send email.";
             }
         } else {
-            $message = "Invalid password.";
+            $message = "Registration failed.";
         }
-    } else {
-        $message = "User not found.";
+        $stmt->close();
     }
-    $stmt->close();
 }
 
 ?>
@@ -94,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - PDF Manager</title>
+    <title>Đăng ký - PDF Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -123,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             max-width: 900px;
             width: 100%;
             display: flex;
-            min-height: 550px;
+            min-height: 600px;
         }
 
         .auth-left {
@@ -306,12 +290,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             border: 1px solid #cfc;
         }
 
-        .message-warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffc107;
-        }
-
         .divider {
             text-align: center;
             margin: 25px 0;
@@ -409,8 +387,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 <body>
     <div class="auth-container">
         <div class="auth-left">
-            <h1>Chào mừng!</h1>
-            <p>Hệ thống quản lý file PDF thông minh và an toàn</p>
+            <h1>Tham gia ngay!</h1>
+            <p>Tạo tài khoản để quản lý file PDF của bạn</p>
             <ul class="features">
                 <li><i class="fas fa-shield-alt"></i> Bảo mật cao cấp</li>
                 <li><i class="fas fa-cloud-upload-alt"></i> Upload file dễ dàng</li>
@@ -420,24 +398,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         </div>
         
         <div class="auth-right">
-            <h2 class="auth-title">Đăng nhập</h2>
-            <p class="auth-subtitle">Chưa có tài khoản? <a href="register.php">Đăng ký ngay</a></p>
+            <h2 class="auth-title">Đăng ký</h2>
+            <p class="auth-subtitle">Đã có tài khoản? <a href="login.php">Đăng nhập ngay</a></p>
 
             <?php if ($message): ?>
-                <div class="message <?php
-                    if (strpos($message, 'thiết bị khác') !== false || strpos($message, 'đăng xuất') !== false) {
-                        echo 'message-warning';
-                    } elseif (strpos($message, 'failed') !== false || strpos($message, 'Invalid') !== false || strpos($message, 'not found') !== false || strpos($message, 'do not match') !== false || strpos($message, 'already') !== false) {
-                        echo 'message-error';
-                    } else {
-                        echo 'message-success';
-                    }
-                ?>">
+                <div class="message <?php echo (strpos($message, 'failed') !== false || strpos($message, 'already') !== false || strpos($message, 'do not match') !== false) ? 'message-error' : 'message-success'; ?>">
                     <?php echo htmlspecialchars($message); ?>
                 </div>
             <?php endif; ?>
 
             <form method="post">
+                <div class="form-group">
+                    <label for="name">Họ và tên</label>
+                    <input type="text" id="name" name="name" placeholder="Nhập họ và tên" required>
+                </div>
+                
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" placeholder="Nhập email của bạn" required>
@@ -448,7 +423,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
                 </div>
                 
-                <button type="submit" name="login" class="btn btn-primary">Đăng nhập</button>
+                <div class="form-group">
+                    <label for="repassword">Xác nhận mật khẩu</label>
+                    <input type="password" id="repassword" name="repassword" placeholder="Nhập lại mật khẩu" required>
+                </div>
+                
+                <button type="submit" name="register" class="btn btn-primary">Đăng ký</button>
                 
                 <div class="divider">
                     <span>Hoặc</span>
@@ -456,12 +436,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 
                 <a href="<?= $google_login_url ?>" class="btn btn-google">
                     <i class="fab fa-google"></i>
-                    Đăng nhập với Google
+                    Đăng ký với Google
                 </a>
             </form>
 
             <div class="auth-footer">
-                Chưa có tài khoản? <a href="register.php">Đăng ký tại đây</a>
+                Đã có tài khoản? <a href="login.php">Đăng nhập tại đây</a>
             </div>
         </div>
     </div>

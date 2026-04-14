@@ -390,7 +390,7 @@ if (isset($_SESSION['user'])) {
                     <i class="fas fa-sign-in-alt"></i>
                     Đăng nhập ngay
                 </a>
-                <a href="login.php" class="btn btn-secondary">
+                <a href="register.php" class="btn btn-secondary">
                     <i class="fas fa-user-plus"></i>
                     Tạo tài khoản
                 </a>
