@@ -733,7 +733,7 @@ $stmt_recent->close();
                         <?php endif; ?>
                     </div>
                 </div>
-                <a href="#" class="upgrade-btn" onclick="alert('Tính năng nâng cấp đang phát triển!')">
+                <a href="upgrade.php" class="upgrade-btn">
                     <i class="fas fa-crown"></i>
                     Nâng cấp Premium
                 </a>

@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
     } elseif ($file['size'] > 10 * 1024 * 1024) { // 10MB
         $uploadError = 'File quá lớn (tối đa 10MB).';
     } elseif (($usedStorage + $file['size']) > $storageLimit) {
-        $uploadError = 'Hết dung lượng lưu trữ! Bạn đã dùng ' . number_format($usedStorage / 1024 / 1024, 2) . 'MB / ' . number_format($storageLimit / 1024 / 1024, 0) . 'MB. Vui lòng <a href="#" onclick="alert(\'Tính năng nâng cấp đang phát triển!\')" style="color:#667eea;font-weight:600;">nâng cấp</a> hoặc xóa bớt file để tiếp tục upload.';
+        $uploadError = 'Hết dung lượng lưu trữ! Bạn đã dùng ' . number_format($usedStorage / 1024 / 1024, 2) . 'MB / ' . number_format($storageLimit / 1024 / 1024, 0) . 'MB. Vui lòng <a href="upgrade.php" style="color:#667eea;font-weight:600;">nâng cấp</a> hoặc xóa bớt file để tiếp tục upload.';
     } elseif (!is_uploaded_file($file['tmp_name'])) {
         $uploadError = 'Tệp tải lên không hợp lệ.';
     } elseif (!$uploadAvailable) {
@@ -1007,7 +1007,7 @@ if ($userId) {
                             <h3>Dung lượng gần đầy!</h3>
                             <p>Bạn đã sử dụng <?= number_format($usedStorage / 1024 / 1024, 2) ?>MB / <?= number_format($storageLimit / 1024 / 1024, 0) ?>MB (còn <?= number_format(($storageLimit - $usedStorage) / 1024, 0) ?>KB trống). Xóa bớt file hoặc nâng cấp để có thêm dung lượng.</p>
                         <?php endif; ?>
-                        <a href="#" class="upgrade-btn" onclick="alert('Tính năng nâng cấp đang phát triển!')">
+                        <a href="upgrade.php" class="upgrade-btn">
                             <i class="fas fa-crown"></i>
                             Nâng cấp lên Premium
                         </a>
