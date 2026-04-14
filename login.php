@@ -3,6 +3,11 @@
 session_start();
 require 'config.php';
 
+if (isset($_SESSION['user'])) {
+    header("Location: dashboard.php");
+    exit();
+}
+
 $message = isset($_SESSION['message']) ? $_SESSION['message'] : '';
 unset($_SESSION['message']);
 
