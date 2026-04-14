@@ -105,10 +105,15 @@ $stmt_recent->close();
         .user-avatar {
             width: 80px;
             height: 80px;
+            min-width: 80px;
+            min-height: 80px;
             border-radius: 50%;
             object-fit: cover;
             border: 4px solid #667eea;
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            overflow: hidden;
+            font-size: 0.7rem;
+            color: transparent;
         }
 
         .user-avatar-placeholder {
@@ -586,7 +591,10 @@ $stmt_recent->close();
         <header>
             <div class="user-info">
                 <?php if (isset($user['picture'])): ?>
-                    <img src="<?= htmlspecialchars($user['picture']) ?>" alt="<?= htmlspecialchars($user['name']) ?>" class="user-avatar">
+                    <img src="<?= htmlspecialchars($user['picture']) ?>" alt="<?= htmlspecialchars($user['name']) ?>" class="user-avatar" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                    <div class="user-avatar-placeholder" style="display:none;">
+                        <?= strtoupper(substr($user['name'], 0, 1)) ?>
+                    </div>
                 <?php else: ?>
                     <div class="user-avatar-placeholder">
                         <?= strtoupper(substr($user['name'], 0, 1)) ?>
