@@ -44,10 +44,16 @@ $conn->query(
 );
 
 // Add file_size column if not exists (for existing tables)
-$conn->query("ALTER TABLE uploads ADD COLUMN IF NOT EXISTS file_size BIGINT DEFAULT 0");
+$result = $conn->query("SHOW COLUMNS FROM uploads LIKE 'file_size'");
+if ($result->num_rows == 0) {
+    $conn->query("ALTER TABLE uploads ADD COLUMN file_size BIGINT DEFAULT 0");
+}
 
 // Add storage_limit column to users if not exists (default 5MB)
-$conn->query("ALTER TABLE users ADD COLUMN IF NOT EXISTS storage_limit BIGINT DEFAULT 5242880");
+$result = $conn->query("SHOW COLUMNS FROM users LIKE 'storage_limit'");
+if ($result->num_rows == 0) {
+    $conn->query("ALTER TABLE users ADD COLUMN storage_limit BIGINT DEFAULT 5242880");
+}
 
 // Get user storage limit and used storage
 $stmt_limit = $conn->prepare("SELECT storage_limit FROM users WHERE id = ?");

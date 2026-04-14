@@ -6,7 +6,11 @@
  */
 
 // Ensure session_token column exists
-$conn->query("ALTER TABLE users ADD COLUMN IF NOT EXISTS session_token VARCHAR(64) DEFAULT NULL");
+$result = $conn->query("SHOW COLUMNS FROM users LIKE 'session_token'");
+
+if ($result->num_rows == 0) {
+    $conn->query("ALTER TABLE users ADD session_token VARCHAR(64) DEFAULT NULL");
+}
 
 if (!isset($_SESSION['user']) || !isset($_SESSION['session_token'])) {
     header("Location: login.php");
