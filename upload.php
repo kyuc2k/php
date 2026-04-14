@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
     if ($file['error'] !== UPLOAD_ERR_OK) {
         switch ($file['error']) {
             case UPLOAD_ERR_INI_SIZE:
-                $uploadError = 'File quá lớn (tôi da ' . ini_get('upload_max_filesize') . ').';
+                $uploadError = 'File quá lớn (tôi đa ' . ini_get('upload_max_filesize') . ').';
                 break;
             case UPLOAD_ERR_FORM_SIZE:
                 $uploadError = 'File quá lớn theo giới hạn form.';
