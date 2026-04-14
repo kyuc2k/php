@@ -8,6 +8,9 @@ require 'auth_check.php';
 $user = $_SESSION['user'];
 $userId = $user['id'] ?? null;
 
+$message = isset($_SESSION['message']) ? $_SESSION['message'] : '';
+unset($_SESSION['message']);
+
 // Handle delete
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['file_id'])) {
     $fileId = (int)$_POST['file_id'];
@@ -619,6 +622,13 @@ $stmt_recent->close();
             </div>
         </header>
 
+        <?php if ($message): ?>
+            <div style="background: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                <i class="fas fa-check-circle"></i>
+                <?= htmlspecialchars($message) ?>
+            </div>
+        <?php endif; ?>
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">
@@ -713,9 +723,9 @@ $stmt_recent->close();
                         <span>Thống kê</span>
                     </a>
                     
-                    <a href="#" class="action-item" onclick="alert('Tính năng đang phát triển!')">
-                        <i class="fas fa-cog"></i>
-                        <span>Cài đặt</span>
+                    <a href="change_password.php" class="action-item">
+                        <i class="fas fa-key"></i>
+                        <span>Đổi mật khẩu</span>
                     </a>
                 </div>
             </div>
