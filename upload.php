@@ -30,31 +30,6 @@ if ($uploadAvailable && !is_writable($uploadDir)) {
     }
 }
 
-// Tạo bảng uploads nếu chưa tồn tại
-$conn->query(
-    "CREATE TABLE IF NOT EXISTS uploads (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        file_name VARCHAR(255) NOT NULL,
-        file_path VARCHAR(500) NOT NULL,
-        file_size BIGINT DEFAULT 0,
-        uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
-);
-
-// Add file_size column if not exists (for existing tables)
-$result = $conn->query("SHOW COLUMNS FROM uploads LIKE 'file_size'");
-if ($result->num_rows == 0) {
-    $conn->query("ALTER TABLE uploads ADD COLUMN file_size BIGINT DEFAULT 0");
-}
-
-// Add storage_limit column to users if not exists (default 5MB)
-$result = $conn->query("SHOW COLUMNS FROM users LIKE 'storage_limit'");
-if ($result->num_rows == 0) {
-    $conn->query("ALTER TABLE users ADD COLUMN storage_limit BIGINT DEFAULT 5242880");
-}
-
 // Get user storage limit and used storage
 $stmt_limit = $conn->prepare("SELECT storage_limit FROM users WHERE id = ?");
 $stmt_limit->bind_param("i", $userId);

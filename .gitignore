@@ -1,6 +1,5 @@
 .env
 settings.json
-*.sql
 *.pdf
 *.ini
 Caddyfile

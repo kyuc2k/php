@@ -7,24 +7,6 @@ require 'auth_check.php';
 $user = $_SESSION['user'];
 $userId = $user['id'] ?? null;
 
-// Tạo bảng payments nếu chưa tồn tại
-$conn->query(
-    "CREATE TABLE IF NOT EXISTS payments (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        plan VARCHAR(10) NOT NULL,
-        amount INT NOT NULL,
-        storage_bytes BIGINT NOT NULL,
-        order_id VARCHAR(100) NOT NULL UNIQUE,
-        request_id VARCHAR(100) NOT NULL,
-        transaction_id VARCHAR(100) DEFAULT NULL,
-        status ENUM('pending','completed','failed') DEFAULT 'pending',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        completed_at DATETIME DEFAULT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
-);
-
 // VNPay Configuration
 $vnp_TmnCode = getenv('VNP_TMN_CODE') ?: 'TCWUT67D';
 $vnp_HashSecret = getenv('VNP_HASH_SECRET') ?: 'RH8QAIMM6PEES46WSINHL7DMSU1U2RHX';
