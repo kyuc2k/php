@@ -8,7 +8,7 @@ if ($token === '') {
     exit();
 }
 
-$stmt = $conn->prepare("SELECT cp.parsed_data, cp.raw_text, u.name AS owner_name FROM cv_profiles cp JOIN users u ON u.id = cp.user_id WHERE cp.token = ?");
+$stmt = $conn->prepare("SELECT cp.parsed_data, cp.raw_text, u.name AS owner_name, u.avatar AS owner_picture FROM cv_profiles cp JOIN users u ON u.id = cp.user_id WHERE cp.token = ?");
 $stmt->bind_param("s", $token);
 $stmt->execute();
 $row = $stmt->get_result()->fetch_assoc();
@@ -39,7 +39,11 @@ function nl2li(string $text): string {
     return '<ul>' . implode('', array_map(fn($l) => '<li>' . htmlspecialchars($l) . '</li>', $lines)) . '</ul>';
 }
 
-$name    = sec('name')    ?: $row['owner_name'];
+$name         = sec('name')    ?: $row['owner_name'];
+$cvPhotoFile  = __DIR__ . '/uploads/cv_photos/' . $token . '.jpg';
+$ownerPicture = file_exists($cvPhotoFile)
+    ? 'uploads/cv_photos/' . $token . '.jpg'
+    : ($row['owner_picture'] ?? '');
 $email   = sec('email');
 $phone   = sec('phone');
 $address = sec('address');
@@ -119,6 +123,16 @@ $extractionFailed = empty($activeSections);
         .panel-left::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 2px; }
 
         /* Avatar */
+        .avatar-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--teal);
+            margin-bottom: 20px;
+            display: block;
+        }
+
         .avatar {
             width: 72px; height: 72px;
             border-radius: 50%;
@@ -491,7 +505,11 @@ $extractionFailed = empty($activeSections);
 
     <!-- ── LEFT PANEL ── -->
     <aside class="panel-left">
+        <?php if ($ownerPicture): ?>
+        <img src="<?= htmlspecialchars($ownerPicture) ?>" alt="<?= htmlspecialchars($name) ?>" class="avatar avatar-img" referrerpolicy="no-referrer">
+        <?php else: ?>
         <div class="avatar"><?= mb_strtoupper(mb_substr($name, 0, 1, 'UTF-8'), 'UTF-8') ?></div>
+        <?php endif; ?>
 
         <h1 class="left-name"><?= htmlspecialchars($name) ?></h1>
 

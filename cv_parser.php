@@ -4,6 +4,39 @@
  */
 
 /**
+ * Extract the largest embedded JPEG image from a PDF (likely the profile photo).
+ * Saves to $savePath. Returns true on success.
+ */
+function cv_extractPhoto(string $pdfPath, string $savePath): bool {
+    $raw = @file_get_contents($pdfPath);
+    if (!$raw) return false;
+
+    $best = '';
+    $pos  = 0;
+
+    // JPEG magic: FF D8 FF ... FF D9
+    while (($start = strpos($raw, "\xFF\xD8\xFF", $pos)) !== false) {
+        $end = strpos($raw, "\xFF\xD9", $start + 2);
+        if ($end !== false) {
+            $jpeg = substr($raw, $start, $end - $start + 2);
+            // Keep the largest JPEG (≥ 5 KB — skip tiny icons/logos)
+            if (strlen($jpeg) > strlen($best) && strlen($jpeg) >= 5120) {
+                $best = $jpeg;
+            }
+        }
+        $pos = $start + 1;
+    }
+
+    if ($best === '') return false;
+
+    // Validate JPEG: must start with FF D8 FF and end with FF D9
+    if (substr($best, 0, 3) !== "\xFF\xD8\xFF") return false;
+    if (substr($best, -2) !== "\xFF\xD9") return false;
+
+    return file_put_contents($savePath, $best) !== false;
+}
+
+/**
  * Parse a PDF CV file using Gemini AI (inline PDF, no text extraction needed).
  * Returns structured array on success, empty array on failure.
  */

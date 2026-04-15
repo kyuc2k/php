@@ -148,7 +148,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
                 require_once __DIR__ . '/cv_parser.php';
                 $cvData = cv_parseFromFile($filePath);
 
-                $token = bin2hex(random_bytes(24));
+                $token    = bin2hex(random_bytes(24));
+                $photoDir = __DIR__ . '/uploads/cv_photos/';
+                if (!is_dir($photoDir)) mkdir($photoDir, 0755, true);
+                cv_extractPhoto($filePath, $photoDir . $token . '.jpg');
                 $json  = json_encode($cvData, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
                 if ($json === false) $json = '{}';
                 $stmt_cv = $conn->prepare("INSERT IGNORE INTO cv_profiles (upload_id, user_id, token, parsed_data) VALUES (?, ?, ?, ?)");
