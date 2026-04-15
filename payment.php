@@ -641,7 +641,13 @@ $stmt_ins->close();
                     </tr>
                     <tr style="border-bottom: 1px dashed #b2ebf2;">
                         <td style="padding: 8px 0; color: #555;">Số thẻ</td>
-                        <td style="padding: 8px 0; font-weight: 600; color: #333;">9704198526191432198</td>
+                        <td style="padding: 8px 0; font-weight: 600; color: #333; display: flex; align-items: center; gap: 10px;">
+                            9704198526191432198
+                            <button id="copyBtn" onclick="copyCardNumber()" style="background: #1abc9c; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; color: white; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                                <i class="fas fa-copy"></i>
+                                <span id="copyText" style="font-size: 0.65rem;"></span>
+                            </button>
+                        </td>
                     </tr>
                     <tr style="border-bottom: 1px dashed #b2ebf2;">
                         <td style="padding: 8px 0; color: #555;">Tên chủ thẻ</td>
@@ -656,6 +662,12 @@ $stmt_ins->close();
                         <td style="padding: 8px 0; font-weight: 600; color: #333;">123456</td>
                     </tr>
                 </table>
+                <div style="margin-top: 15px; padding: 12px; background: #fff; border-radius: 8px; border-left: 4px solid #1abc9c;">
+                    <p style="margin: 0; font-size: 0.9rem; color: #555;">
+                        <i class="fas fa-lightbulb" style="color: #f39c12;"></i>
+                        <strong>Chọn phương thức thanh toán:</strong> Thẻ nội địa và tài khoản ngân hàng
+                    </p>
+                </div>
             </div>
             <?php endif; ?>
 
@@ -721,5 +733,17 @@ $stmt_ins->close();
             </div>
         </div>
     </div>
+
+    <script>
+        function copyCardNumber() {
+            navigator.clipboard.writeText('9704198526191432198').then(function() {
+                var copyText = document.getElementById('copyText');
+                copyText.textContent = 'đã được copy';
+                setTimeout(function() {
+                    copyText.textContent = '';
+                }, 2000);
+            });
+        }
+    </script>
 </body>
 </html>
