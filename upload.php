@@ -80,6 +80,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// Xử lý upload từ file temp (khi user nhập tên mới sau khi trùng)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['temp_token']) && isset($_POST['custom_filename'])) {
+    $tempToken = $_POST['temp_token'];
+    $tempPath = __DIR__ . '/uploads/temp/' . $tempToken . '.pdf';
+    
+    if (!file_exists($tempPath)) {
+        $message = 'File tạm đã hết hạn. Vui lòng upload lại.';
+    } else {
+        $fileName = trim($_POST['custom_filename']);
+        $extension = 'pdf';
+        if (pathinfo($fileName, PATHINFO_EXTENSION) !== $extension) {
+            $fileName .= '.' . $extension;
+        }
+        
+        // Kiểm tra lại trùng tên
+        $stmt_check = $conn->prepare("SELECT id FROM uploads WHERE user_id = ? AND file_name = ?");
+        $stmt_check->bind_param("is", $userId, $fileName);
+        $stmt_check->execute();
+        $exists = $stmt_check->get_result()->num_rows > 0;
+        $stmt_check->close();
+        
+        if ($exists) {
+            $uploadError = 'File "' . htmlspecialchars($fileName) . '" đã tồn tại. Vui lòng nhập tên khác:';
+            $showCustomNameForm = true;
+            $originalFileName = $fileName;
+            $tempFileToken = $tempToken;
+        } else {
+            $filePath = $uploadDir . $fileName;
+            $relativePath = 'uploads/' . $fileName;
+            
+            if (rename($tempPath, $filePath)) {
+                $fileSize = filesize($filePath);
+                $stmt = $conn->prepare("INSERT INTO uploads (user_id, file_name, file_path, file_size) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("issi", $userId, $fileName, $relativePath, $fileSize);
+                $stmt->execute();
+                $newUploadId = $stmt->insert_id;
+                $stmt->close();
+                
+                // Xóa file temp nếu còn
+                if (file_exists($tempPath)) unlink($tempPath);
+
+                // CV detection
+                $isCV = preg_match('/(?<![a-zA-Z])cv(?![a-zA-Z])/i', pathinfo($fileName, PATHINFO_FILENAME));
+                if ($isCV) {
+                    require_once __DIR__ . '/cv_parser.php';
+                    $cvData = cv_parseFromFile($filePath);
+                    $token = bin2hex(random_bytes(24));
+                    $photoDir = __DIR__ . '/uploads/cv_photos/';
+                    if (!is_dir($photoDir)) mkdir($photoDir, 0755, true);
+                    cv_extractPhoto($filePath, $photoDir . $token . '.jpg');
+                    $json = json_encode($cvData, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+                    if ($json === false) $json = '{}';
+                    $stmt_cv = $conn->prepare("INSERT IGNORE INTO cv_profiles (upload_id, user_id, token, parsed_data) VALUES (?, ?, ?, ?)");
+                    $stmt_cv->bind_param("iiss", $newUploadId, $userId, $token, $json);
+                    $stmt_cv->execute();
+                    $stmt_cv->close();
+                    $_SESSION['upload_message'] = 'Upload thành công! CV được phát hiện — <a href="cv_view.php?token=' . urlencode($token) . '" target="_blank" style="color:#667eea;font-weight:600;">Xem CV online</a>';
+                } else {
+                    $_SESSION['upload_message'] = 'Upload thành công: <a href="' . htmlspecialchars($relativePath) . '" target="_blank">' . htmlspecialchars($fileName) . '</a>';
+                }
+                header("Location: upload.php");
+                exit();
+            } else {
+                $message = 'Lỗi di chuyển file.';
+            }
+        }
+    }
+}
+
+// Xử lý upload file mới
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
     $file = $_FILES['pdf_file'];
 
@@ -125,50 +195,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
     } elseif (!$userId) {
         $uploadError = 'Không xác định được người dùng hiện tại.';
     } else {
-        // Tạo tên file duy nhất với timestamp
-        $timestamp = date('dmYHis'); // ngày tháng năm giờ phút giây
-        $originalName = pathinfo($file['name'], PATHINFO_FILENAME); // Lấy tên file không có extension
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION); // Lấy extension
-        $fileName = $timestamp . '_' . $originalName . '.' . $extension;
-        $filePath = $uploadDir . $fileName;
-        $relativePath = 'uploads/' . $fileName;  // Đường dẫn tương đối để lưu vào DB
-
-        if (move_uploaded_file($file['tmp_name'], $filePath)) {
-            $fileSize = filesize($filePath);
-            $stmt = $conn->prepare("INSERT INTO uploads (user_id, file_name, file_path, file_size) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("issi", $userId, $fileName, $relativePath, $fileSize);
-            $stmt->execute();
-            $newUploadId = $stmt->insert_id;
-            $stmt->close();
-
-            // CV detection: check if original filename contains "cv" not surrounded by other letters
-            // e.g. CV_name.pdf, name_CV.pdf, My-CV.pdf all match; "invoice.pdf" does not
-            $isCV = preg_match('/(?<![a-zA-Z])cv(?![a-zA-Z])/i', pathinfo($file['name'], PATHINFO_FILENAME));
-            if ($isCV) {
-                require_once __DIR__ . '/cv_parser.php';
-                $cvData = cv_parseFromFile($filePath);
-
-                $token    = bin2hex(random_bytes(24));
-                $photoDir = __DIR__ . '/uploads/cv_photos/';
-                if (!is_dir($photoDir)) mkdir($photoDir, 0755, true);
-                cv_extractPhoto($filePath, $photoDir . $token . '.jpg');
-                $json  = json_encode($cvData, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
-                if ($json === false) $json = '{}';
-                $stmt_cv = $conn->prepare("INSERT IGNORE INTO cv_profiles (upload_id, user_id, token, parsed_data) VALUES (?, ?, ?, ?)");
-                $stmt_cv->bind_param("iiss", $newUploadId, $userId, $token, $json);
-                $stmt_cv->execute();
-                $stmt_cv->close();
-                $_SESSION['upload_message'] = 'Upload thành công! CV được phát hiện — <a href="cv_view.php?token=' . urlencode($token) . '" target="_blank" style="color:#667eea;font-weight:600;">Xem CV online</a>';
-            } else {
-                $_SESSION['upload_message'] = 'Upload thành công: <a href="' . htmlspecialchars($relativePath) . '" target="_blank">' . htmlspecialchars($fileName) . '</a>';
+        // Giữ nguyên tên file gốc, kiểm tra trùng
+        $fileName = $file['name'];
+        $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        
+        // Kiểm tra xem file này đã tồn tại cho user chưa
+        $stmt_check = $conn->prepare("SELECT id FROM uploads WHERE user_id = ? AND file_name = ?");
+        $stmt_check->bind_param("is", $userId, $fileName);
+        $stmt_check->execute();
+        $exists = $stmt_check->get_result()->num_rows > 0;
+        $stmt_check->close();
+        
+        // Nếu user nhập tên mới (từ form)
+        if (isset($_POST['custom_filename']) && trim($_POST['custom_filename']) !== '') {
+            $customName = trim($_POST['custom_filename']);
+            if (pathinfo($customName, PATHINFO_EXTENSION) !== $extension) {
+                $customName .= '.' . $extension;
             }
-
-            // Redirect để tránh duplicate upload khi reload
-            header("Location: upload.php");
-            exit();
+            $fileName = $customName;
+            
+            // Kiểm tra lại tên mới
+            $stmt_check2 = $conn->prepare("SELECT id FROM uploads WHERE user_id = ? AND file_name = ?");
+            $stmt_check2->bind_param("is", $userId, $fileName);
+            $stmt_check2->execute();
+            $exists = $stmt_check2->get_result()->num_rows > 0;
+            $stmt_check2->close();
+        }
+        
+        if ($exists) {
+            // Lưu file vào temp để giữ lại cho request sau
+            $tempDir = __DIR__ . '/uploads/temp/';
+            if (!is_dir($tempDir)) mkdir($tempDir, 0755, true);
+            $tempToken = bin2hex(random_bytes(16));
+            $tempPath = $tempDir . $tempToken . '.pdf';
+            
+            if (move_uploaded_file($file['tmp_name'], $tempPath)) {
+                $uploadError = 'File "' . htmlspecialchars($fileName) . '" đã tồn tại. Vui lòng nhập tên khác bên dưới:';
+                $showCustomNameForm = true;
+                $originalFileName = $file['name'];
+                $tempFileToken = $tempToken;
+            } else {
+                $uploadError = 'Lỗi lưu file tạm.';
+            }
         } else {
-            $error = error_get_last();
-            $uploadError = 'Lỗi lưu file.' . ($error ? ' ' . $error['message'] : '');
+            $showCustomNameForm = false;
+            $filePath = $uploadDir . $fileName;
+            $relativePath = 'uploads/' . $fileName;
+
+            if (move_uploaded_file($file['tmp_name'], $filePath)) {
+                $fileSize = filesize($filePath);
+                $stmt = $conn->prepare("INSERT INTO uploads (user_id, file_name, file_path, file_size) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("issi", $userId, $fileName, $relativePath, $fileSize);
+                $stmt->execute();
+                $newUploadId = $stmt->insert_id;
+                $stmt->close();
+
+                // CV detection: check if original filename contains "cv" not surrounded by other letters
+                // e.g. CV_name.pdf, name_CV.pdf, My-CV.pdf all match; "invoice.pdf" does not
+                $isCV = preg_match('/(?<![a-zA-Z])cv(?![a-zA-Z])/i', pathinfo($file['name'], PATHINFO_FILENAME));
+                if ($isCV) {
+                    require_once __DIR__ . '/cv_parser.php';
+                    $cvData = cv_parseFromFile($filePath);
+
+                    $token    = bin2hex(random_bytes(24));
+                    $photoDir = __DIR__ . '/uploads/cv_photos/';
+                    if (!is_dir($photoDir)) mkdir($photoDir, 0755, true);
+                    cv_extractPhoto($filePath, $photoDir . $token . '.jpg');
+                    $json  = json_encode($cvData, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+                    if ($json === false) $json = '{}';
+                    $stmt_cv = $conn->prepare("INSERT IGNORE INTO cv_profiles (upload_id, user_id, token, parsed_data) VALUES (?, ?, ?, ?)");
+                    $stmt_cv->bind_param("iiss", $newUploadId, $userId, $token, $json);
+                    $stmt_cv->execute();
+                    $stmt_cv->close();
+                    $_SESSION['upload_message'] = 'Upload thành công! CV được phát hiện — <a href="cv_view.php?token=' . urlencode($token) . '" target="_blank" style="color:#667eea;font-weight:600;">Xem CV online</a>';
+                } else {
+                    $_SESSION['upload_message'] = 'Upload thành công: <a href="' . htmlspecialchars($relativePath) . '" target="_blank">' . htmlspecialchars($fileName) . '</a>';
+                }
+
+                // Redirect để tránh duplicate upload khi reload
+                header("Location: upload.php");
+                exit();
+            } else {
+                $error = error_get_last();
+                $uploadError = 'Lỗi lưu file.' . ($error ? ' ' . $error['message'] : '');
+            }
         }
     }
 
@@ -1015,6 +1125,24 @@ if ($userId) {
                         </a>
                     </div>
                 <?php elseif ($uploadAvailable): ?>
+                    <?php if (isset($showCustomNameForm) && $showCustomNameForm): ?>
+                    <div class="upload-area" style="padding: 30px;">
+                        <i class="fas fa-exclamation-circle upload-icon" style="color: #ff6b6b;"></i>
+                        <div class="upload-text" style="color: #333;"><?= htmlspecialchars($uploadError) ?></div>
+                        <form method="post" enctype="multipart/form-data" style="margin-top: 20px;">
+                            <input type="hidden" name="temp_token" value="<?= htmlspecialchars($tempFileToken ?? '') ?>">
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Nhập tên mới:</label>
+                                <input type="text" name="custom_filename" value="<?= htmlspecialchars($originalFileName ?? '') ?>" 
+                                       style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;" required>
+                            </div>
+                            <button type="submit" class="upload-btn" style="width: 100%;">
+                                <i class="fas fa-check"></i>
+                                Upload với tên mới
+                            </button>
+                        </form>
+                    </div>
+                    <?php else: ?>
                     <div class="upload-area" id="uploadArea">
                         <i class="fas fa-cloud-upload-alt upload-icon"></i>
                         <div class="upload-text">Kéo và thả file PDF vào đây</div>
@@ -1027,6 +1155,7 @@ if ($userId) {
                             </button>
                         </form>
                     </div>
+                    <?php endif; ?>
                 <?php else: ?>
                     <div class="message message-error">
                         <i class="fas fa-exclamation-triangle"></i>
