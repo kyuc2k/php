@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /uploads/
+Disallow: /uploads/temp/
+Disallow: /uploads/cv_photos/
+Disallow: /config.php
+Disallow: /auth_check.php
+Disallow: /google-callback.php
+Disallow: /logout.php
+Disallow: /.env
+
+Allow: /
+Allow: /cv_view.php
+
+Sitemap: https://kyuc2k.pro/sitemap.xml
