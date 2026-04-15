@@ -571,10 +571,19 @@ if ($currentLimit >= 2147483648) {
                     <li><i class="fas fa-check"></i> Upload file PDF không giới hạn</li>
                     <li><i class="fas fa-check"></i> Quản lý file dễ dàng</li>
                 </ul>
-                <?php if ($currentLimit >= 1073741824): ?>
+                <?php if ($currentLimit >= 2147483648): ?>
                     <button class="plan-btn plan-btn-primary" disabled>
                         <i class="fas fa-check-circle"></i>
-                        <?= $currentLimit == 1073741824 ? 'Đang sử dụng' : 'Đã vượt gói này' ?>
+                        Đã vượt gói này
+                    </button>
+                <?php elseif ($currentLimit >= 1073741824): ?>
+                    <button class="plan-btn plan-btn-primary" disabled>
+                        <i class="fas fa-check-circle"></i>
+                        Đang sử dụng
+                    </button>
+                    <button class="plan-btn plan-btn-gold" style="margin-top: 10px;" onclick="showConfirmModal('2gb', 'Gói Nâng cao - 2GB', '10.000 VNĐ (đã trừ 10.000 VNĐ gói cũ)')">
+                        <i class="fas fa-arrow-up"></i>
+                        Nâng cấp lên 2GB — chỉ 10.000 VNĐ
                     </button>
                 <?php else: ?>
                     <button class="plan-btn plan-btn-primary" onclick="showConfirmModal('1gb', 'Gói Cơ bản - 1GB', '10.000 VNĐ')">
@@ -593,7 +602,7 @@ if ($currentLimit >= 2147483648) {
                 <div class="plan-name">Gói Nâng cao</div>
                 <div class="plan-storage">2 GB lưu trữ</div>
                 <div class="plan-price">
-                    <span class="amount">15.000</span>
+                    <span class="amount">20.000</span>
                     <span class="currency">VNĐ</span>
                 </div>
                 <ul class="plan-features">
@@ -608,7 +617,7 @@ if ($currentLimit >= 2147483648) {
                         Đang sử dụng
                     </button>
                 <?php else: ?>
-                    <button class="plan-btn plan-btn-gold" onclick="showConfirmModal('2gb', 'Gói Nâng cao - 2GB', '15.000 VNĐ')">
+                    <button class="plan-btn plan-btn-gold" onclick="showConfirmModal('2gb', 'Gói Nâng cao - 2GB', '20.000 VNĐ')">
                         <i class="fas fa-arrow-up"></i>
                         Nâng cấp ngay
                     </button>

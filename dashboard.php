@@ -740,6 +740,24 @@ $stmt_recent->close();
             </div>
         <?php endif; ?>
 
+        <?php if ($storageLimit === 1073741824): ?>
+            <div class="storage-upgrade-banner" style="background: linear-gradient(135deg, #f0f4ff 0%, #e0e9ff 100%); border-color: #c0d0ff;">
+                <div class="storage-upgrade-info">
+                    <div class="upgrade-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div>
+                        <h3 style="color: #4a5ba8;">Nâng cấp lên Gói Nâng cao - 2GB</h3>
+                        <p>Bạn đang dùng gói 1GB. Nâng lên 2GB chỉ với <strong>10.000 VNĐ</strong> (sau khi trừ gói 1GB đã mua) để có thêm dung lượng và ưu tiên hỗ trợ.</p>
+                    </div>
+                </div>
+                <a href="payment.php?plan=2gb" class="upgrade-btn" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                    <i class="fas fa-arrow-up"></i>
+                    Nâng cấp lên 2GB
+                </a>
+            </div>
+        <?php endif; ?>
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">

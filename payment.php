@@ -35,7 +35,7 @@ $paymentEnv = getenv('PAYMENT_ENV') ?: 'sandbox';
 // Validate plan
 $plans = [
     '1gb' => ['size' => 1073741824, 'price' => 10000, 'label' => 'Gói Cơ bản - 1GB', 'short' => '1GB'],
-    '2gb' => ['size' => 2147483648, 'price' => 15000, 'label' => 'Gói Nâng cao - 2GB', 'short' => '2GB'],
+    '2gb' => ['size' => 2147483648, 'price' => 20000, 'label' => 'Gói Nâng cao - 2GB', 'short' => '2GB'],
 ];
 
 $planKey = $_GET['plan'] ?? '';
@@ -46,6 +46,12 @@ if (!isset($plans[$planKey])) {
 
 $plan = $plans[$planKey];
 
+// Plan prices map for discount calculation
+$planPrices = [
+    1073741824 => 10000, // 1GB
+    2147483648 => 20000, // 2GB
+];
+
 // Check if user already has this or higher plan
 $stmt = $conn->prepare("SELECT storage_limit FROM users WHERE id = ?");
 $stmt->bind_param("i", $userId);
@@ -54,7 +60,11 @@ $currentLimit = $stmt->get_result()->fetch_assoc()['storage_limit'] ?? 5242880;
 $stmt->close();
 
 if ($currentLimit >= $plan['size']) {
-    $_SESSION['upgrade_message'] = 'Bạn đã có gói bằng hoặc lớn hơn gói này!';
+    if ($currentLimit == $plan['size']) {
+        $_SESSION['upgrade_message'] = 'Bạn đang sử dụng gói này rồi!';
+    } else {
+        $_SESSION['upgrade_message'] = 'Bạn đã có gói lớn hơn gói này!';
+    }
     $_SESSION['upgrade_message_type'] = 'error';
     header("Location: upgrade.php");
     exit();
@@ -72,11 +82,16 @@ $orderId = 'UP' . $userId . 'T' . time() . rand(100, 999);
 $vnpError = '';
 $payUrl = '';
 
+// Calculate actual price (deduct value of current plan if upgrading)
+$currentPlanValue = $planPrices[$currentLimit] ?? 0;
+$actualPrice = max(0, $plan['price'] - $currentPlanValue);
+$isUpgrade = $currentPlanValue > 0;
+
 // Build VNPay payment URL
 $vnp_TxnRef = $orderId;
 $vnp_OrderInfo = 'Nang cap ' . $plan['short'] . ' - User ' . $userId;
 $vnp_OrderType = 'billpayment';
-$vnp_Amount = $plan['price'] * 100; // VNPay requires amount in cents (VND * 100)
+$vnp_Amount = $actualPrice * 100; // VNPay requires amount in cents (VND * 100)
 $vnp_Locale = 'vn';
 $vnp_BankCode = '';
 $vnp_IpAddr = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
@@ -125,7 +140,7 @@ $payUrl = $vnp_Url . "?" . $query . 'vnp_SecureHash=' . $vnp_SecureHash;
 // Save payment to DB
 $requestId = $orderId . '_req';
 $stmt_ins = $conn->prepare("INSERT INTO payments (user_id, plan, amount, storage_bytes, order_id, request_id, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')");
-$stmt_ins->bind_param("isiiss", $userId, $planKey, $plan['price'], $plan['size'], $orderId, $requestId);
+$stmt_ins->bind_param("isiiss", $userId, $planKey, $actualPrice, $plan['size'], $orderId, $requestId);
 $stmt_ins->execute();
 $stmt_ins->close();
 ?>
@@ -618,8 +633,22 @@ $stmt_ins->close();
                         <div class="order-plan-desc">Dung lượng lưu trữ <?= $plan['short'] ?></div>
                     </div>
                 </div>
-                <div class="order-price">
-                    <?= number_format($plan['price'], 0, ',', '.') ?> <span>VNĐ</span>
+                <div style="text-align: right;">
+                    <?php if ($isUpgrade && $currentPlanValue > 0): ?>
+                        <div style="font-size: 0.85rem; color: #999; text-decoration: line-through; margin-bottom: 2px;">
+                            <?= number_format($plan['price'], 0, ',', '.') ?> VNĐ
+                        </div>
+                        <div style="font-size: 0.8rem; color: #27ae60; margin-bottom: 4px;">
+                            <i class="fas fa-tag"></i> Trừ gói 1GB đã mua: -<?= number_format($currentPlanValue, 0, ',', '.') ?> VNĐ
+                        </div>
+                        <div class="order-price">
+                            <?= number_format($actualPrice, 0, ',', '.') ?> <span>VNĐ</span>
+                        </div>
+                    <?php else: ?>
+                        <div class="order-price">
+                            <?= number_format($actualPrice, 0, ',', '.') ?> <span>VNĐ</span>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -704,9 +733,14 @@ $stmt_ins->close();
                     <span class="transfer-value"><?= htmlspecialchars($plan['label']) ?></span>
                 </div>
                 <div class="transfer-row">
-                    <span class="transfer-label">Số tiền</span>
+                    <span class="transfer-label">Số tiền thanh toán</span>
                     <span class="transfer-value" style="color: #e74c3c; font-size: 1.05rem;">
-                        <?= number_format($plan['price'], 0, ',', '.') ?> VNĐ
+                        <?= number_format($actualPrice, 0, ',', '.') ?> VNĐ
+                        <?php if ($isUpgrade && $currentPlanValue > 0): ?>
+                            <small style="display: block; font-size: 0.75rem; color: #27ae60; font-weight: 500;">
+                                (Giá gốc <?= number_format($plan['price'], 0, ',', '.') ?> - đã trừ <?= number_format($currentPlanValue, 0, ',', '.') ?> VNĐ gói cũ)
+                            </small>
+                        <?php endif; ?>
                     </span>
                 </div>
             </div>
