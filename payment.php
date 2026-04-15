@@ -628,6 +628,35 @@ $stmt_ins->close();
                 <i class="fas fa-info-circle"></i>
                 <span>Đang dùng <strong>VNPay Sandbox</strong> — thanh toán thử nghiệm (không mất tiền thật).</span>
             </div>
+
+            <!-- Test Card Info -->
+            <div style="background: #e8f6f3; border: 1px solid #1abc9c; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
+                <h4 style="font-size: 1rem; font-weight: 700; color: #16a085; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-credit-card"></i> Thông tin thẻ TEST
+                </h4>
+                <table style="width: 100%; font-size: 0.9rem; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px dashed #b2ebf2;">
+                        <td style="padding: 8px 0; color: #555; width: 40%;">Ngân hàng</td>
+                        <td style="padding: 8px 0; font-weight: 600; color: #333;">NCB</td>
+                    </tr>
+                    <tr style="border-bottom: 1px dashed #b2ebf2;">
+                        <td style="padding: 8px 0; color: #555;">Số thẻ</td>
+                        <td style="padding: 8px 0; font-weight: 600; color: #333;">9704198526191432198</td>
+                    </tr>
+                    <tr style="border-bottom: 1px dashed #b2ebf2;">
+                        <td style="padding: 8px 0; color: #555;">Tên chủ thẻ</td>
+                        <td style="padding: 8px 0; font-weight: 600; color: #333;">NGUYEN VAN A</td>
+                    </tr>
+                    <tr style="border-bottom: 1px dashed #b2ebf2;">
+                        <td style="padding: 8px 0; color: #555;">Ngày phát hành</td>
+                        <td style="padding: 8px 0; font-weight: 600; color: #333;">07/15</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555;">Mật khẩu OTP</td>
+                        <td style="padding: 8px 0; font-weight: 600; color: #333;">123456</td>
+                    </tr>
+                </table>
+            </div>
             <?php endif; ?>
 
             <!-- Steps -->

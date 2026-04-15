@@ -620,13 +620,13 @@ if ($currentLimit >= 2147483648) {
     <!-- Confirm Modal -->
     <div id="confirmModal" class="modal">
         <div class="modal-content">
-            <div class="modal-icon" style="background: linear-gradient(135deg, #28a745, #20c997);">
-                <i class="fas fa-crown"></i>
+            <div class="modal-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                <i class="fas fa-credit-card"></i>
             </div>
-            <h3 class="modal-title">Thanh toán qua MoMo</h3>
+            <h3 class="modal-title">Thanh toán VNPay</h3>
             <div class="modal-message">
                 Bạn muốn nâng cấp lên <strong id="modalPlanName"></strong>?<br>
-                <span style="font-size: 0.9rem; color: #999;">Bạn sẽ được chuyển sang trang thanh toán MoMo</span>
+                <span style="font-size: 0.9rem; color: #999;">Bạn sẽ được chuyển sang trang thanh toán VNPay</span>
             </div>
             <div class="modal-price" id="modalPrice"></div>
             <div class="modal-actions">
@@ -635,8 +635,8 @@ if ($currentLimit >= 2147483648) {
                 </button>
                 <form method="post" id="upgradeForm" style="display:inline;">
                     <input type="hidden" name="plan" id="upgradePlan">
-                    <button type="submit" class="modal-btn modal-btn-confirm" style="background: linear-gradient(135deg, #ae2070, #d63384);">
-                        <i class="fas fa-wallet"></i> Thanh toán
+                    <button type="submit" class="modal-btn modal-btn-confirm" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                        <i class="fas fa-credit-card"></i> Thanh toán
                     </button>
                 </form>
             </div>
