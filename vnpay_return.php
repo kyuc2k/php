@@ -53,7 +53,7 @@ if ($vnp_SecureHash !== $expectedSecureHash) {
 // Check response code (00 = success)
 if ($vnp_ResponseCode == '00') {
     // Find pending payment
-    $stmt = $conn->prepare("SELECT id, user_id, plan, storage_bytes, status FROM payments WHERE order_id = ? LIMIT 1");
+    $stmt = $conn->prepare("SELECT id, user_id, plan, amount, storage_bytes, status FROM payments WHERE order_id = ? LIMIT 1");
     $stmt->bind_param("s", $vnp_TxnRef);
     $stmt->execute();
     $payment = $stmt->get_result()->fetch_assoc();
