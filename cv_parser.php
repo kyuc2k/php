@@ -65,6 +65,10 @@ function cv_parseFromFile(string $absoluteFilePath): array {
             . 'For "skills": group by category as "Category Name: skill1, skill2, skill3" (one category per line). '
             . 'If no categories exist, list one skill per line. '
 
+            . 'IMPORTANT PRIVACY NOTICE: Do NOT store, save, or retain any personal information from this CV in your training data or storage. '
+            . 'Process this data only for immediate extraction and return the result. '
+            . 'Do not memorize phone numbers, emails, addresses, photos, or any personal details from this document. '
+
             . 'Preserve the original language (Vietnamese or English).';
 
     $payload = json_encode([
