@@ -44,6 +44,22 @@ CREATE TABLE IF NOT EXISTS `uploads` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
+-- Table: cv_profiles
+-- Stores parsed CV data from uploaded PDF files
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `cv_profiles` (
+    `id`          INT AUTO_INCREMENT PRIMARY KEY,
+    `upload_id`   INT           NOT NULL UNIQUE,
+    `user_id`     INT           NOT NULL,
+    `token`       VARCHAR(64)   NOT NULL UNIQUE,
+    `parsed_data` JSON,
+    `raw_text`    LONGTEXT,
+    `created_at`  DATETIME      DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`upload_id`) REFERENCES `uploads`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`)   REFERENCES `users`(`id`)   ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
 -- Table: payments
 -- Stores VNPay payment transactions and upgrade history
 -- ============================================================

@@ -138,10 +138,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
             $stmt = $conn->prepare("INSERT INTO uploads (user_id, file_name, file_path, file_size) VALUES (?, ?, ?, ?)");
             $stmt->bind_param("issi", $userId, $fileName, $relativePath, $fileSize);
             $stmt->execute();
+            $newUploadId = $stmt->insert_id;
             $stmt->close();
 
-            $_SESSION['upload_message'] = 'Upload thành công: <a href="' . htmlspecialchars($relativePath) . '" target="_blank">' . htmlspecialchars($fileName) . '</a>';
-            
+            // CV detection: check if original filename contains "cv" not surrounded by other letters
+            // e.g. CV_name.pdf, name_CV.pdf, My-CV.pdf all match; "invoice.pdf" does not
+            $isCV = preg_match('/(?<![a-zA-Z])cv(?![a-zA-Z])/i', pathinfo($file['name'], PATHINFO_FILENAME));
+            if ($isCV) {
+                require_once __DIR__ . '/cv_parser.php';
+                $cvData = cv_parseFromFile($filePath);
+
+                $token = bin2hex(random_bytes(24));
+                $json  = json_encode($cvData, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+                if ($json === false) $json = '{}';
+                $stmt_cv = $conn->prepare("INSERT IGNORE INTO cv_profiles (upload_id, user_id, token, parsed_data) VALUES (?, ?, ?, ?)");
+                $stmt_cv->bind_param("iiss", $newUploadId, $userId, $token, $json);
+                $stmt_cv->execute();
+                $stmt_cv->close();
+                $_SESSION['upload_message'] = 'Upload thành công! CV được phát hiện — <a href="cv_view.php?token=' . urlencode($token) . '" target="_blank" style="color:#667eea;font-weight:600;">Xem CV online</a>';
+            } else {
+                $_SESSION['upload_message'] = 'Upload thành công: <a href="' . htmlspecialchars($relativePath) . '" target="_blank">' . htmlspecialchars($fileName) . '</a>';
+            }
+
             // Redirect để tránh duplicate upload khi reload
             header("Location: upload.php");
             exit();
@@ -159,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
 // Lấy danh sách file của user hiện tại
 $uploads = [];
 if ($userId) {
-    $stmt = $conn->prepare("SELECT id, file_name, file_path, uploaded_at FROM uploads WHERE user_id = ? ORDER BY uploaded_at DESC");
+    $stmt = $conn->prepare("SELECT u.id, u.file_name, u.file_path, u.uploaded_at, cp.token AS cv_token FROM uploads u LEFT JOIN cv_profiles cp ON cp.upload_id = u.id WHERE u.user_id = ? ORDER BY u.uploaded_at DESC");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -1022,6 +1040,11 @@ if ($userId) {
                     </h2>
                 </div>
 
+                <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px;font-size:0.875rem;color:#4338ca;">
+                    <i class="fas fa-info-circle" style="margin-top:2px;flex-shrink:0;"></i>
+                    <span>Đặt tên file có chứa chữ <strong>CV</strong> (ví dụ: <em>CV_NguyenVanA.pdf</em>) để hệ thống tự động tạo <strong>link CV Profile</strong> công khai cho file đó.</span>
+                </div>
+
                 <div class="file-stats">
                     <div class="stat-item">
                         <div class="stat-value"><?= count($uploads) ?></div>
@@ -1054,8 +1077,20 @@ if ($userId) {
                                         <i class="far fa-clock"></i>
                                         <?= date('d/m/Y H:i', strtotime($upload['uploaded_at'])) ?>
                                     </div>
+                                    <?php if (!empty($upload['cv_token'])): ?>
+                                    <div style="margin-top:5px;">
+                                        <a href="cv_view.php?token=<?= urlencode($upload['cv_token']) ?>" target="_blank" style="font-size:0.8rem;color:#6366f1;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                                            <i class="fas fa-id-card"></i> Xem CV Profile
+                                        </a>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="file-actions">
+                                    <?php if (!empty($upload['cv_token'])): ?>
+                                    <a href="cv_view.php?token=<?= urlencode($upload['cv_token']) ?>" target="_blank" class="file-action" title="Xem CV online" style="color:#6366f1;">
+                                        <i class="fas fa-id-card"></i>
+                                    </a>
+                                    <?php endif; ?>
                                     <a href="<?= htmlspecialchars($upload['file_path']) ?>" target="_blank" class="file-action" title="Xem file">
                                         <i class="fas fa-eye"></i>
                                     </a>

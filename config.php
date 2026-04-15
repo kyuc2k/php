@@ -30,6 +30,7 @@ loadEnvFile(__DIR__ . '/.env');
 $client_id = getenv('CLIENT_ID') ?: '';
 $client_secret = getenv('CLIENT_SECRET') ?: '';
 $redirect_uri = getenv('REDIRECT_URI') ?: '';
+$gemini_api_key = getenv('GEMINI_API_KEY') ?: '';
 
 $conn = new mysqli(
     getenv('DB_HOST') ?: '',
