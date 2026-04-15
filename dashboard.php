@@ -49,7 +49,7 @@ $stmt_sl->bind_param("i", $user['id']);
 $stmt_sl->execute();
 $result_sl = $stmt_sl->get_result();
 $sl_row = $result_sl->fetch_assoc();
-$storageLimit = $sl_row['storage_limit'] ?? 5242880;
+$storageLimit = $sl_row['storage_limit'] ?? 10485760;
 $stmt_sl->close();
 $storagePercent = $storageLimit > 0 ? min(100, round(($stats['total_size'] / $storageLimit) * 100, 1)) : 0;
 $storageExceeded = $stats['total_size'] >= $storageLimit;

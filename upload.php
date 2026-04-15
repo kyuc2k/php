@@ -36,7 +36,7 @@ $stmt_limit->bind_param("i", $userId);
 $stmt_limit->execute();
 $result_limit = $stmt_limit->get_result();
 $userRow = $result_limit->fetch_assoc();
-$storageLimit = $userRow['storage_limit'] ?? 5242880; // 5MB default
+$storageLimit = $userRow['storage_limit'] ?? 10485760; // 10MB default
 $stmt_limit->close();
 
 $stmt_used = $conn->prepare("SELECT COALESCE(SUM(file_size), 0) as used_storage FROM uploads WHERE user_id = ?");

@@ -38,7 +38,7 @@ $planPrices = [
 $stmt = $conn->prepare("SELECT storage_limit FROM users WHERE id = ?");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
-$currentLimit = $stmt->get_result()->fetch_assoc()['storage_limit'] ?? 5242880;
+$currentLimit = $stmt->get_result()->fetch_assoc()['storage_limit'] ?? 10485760;
 $stmt->close();
 
 if ($currentLimit >= $plan['size']) {

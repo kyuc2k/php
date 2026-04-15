@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `verification_code`         VARCHAR(10)   DEFAULT NULL,
     `verification_code_expires` DATETIME      DEFAULT NULL,
     `session_token`             VARCHAR(100)  DEFAULT NULL,          -- For single-session enforcement
-    `storage_limit`             BIGINT        NOT NULL DEFAULT 5242880, -- Default 5MB in bytes
+    `storage_limit`             BIGINT        NOT NULL DEFAULT 10485760, -- Default 10MB in bytes
     `created_at`                DATETIME      DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

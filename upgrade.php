@@ -12,7 +12,7 @@ $stmt->bind_param("i", $userId);
 $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();
-$currentLimit = $row['storage_limit'] ?? 5242880;
+$currentLimit = $row['storage_limit'] ?? 10485760;
 $stmt->close();
 
 $stmt_used = $conn->prepare("SELECT COALESCE(SUM(file_size), 0) as used FROM uploads WHERE user_id = ?");
