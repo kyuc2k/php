@@ -56,7 +56,7 @@ $storageExceeded = $stats['total_size'] >= $storageLimit;
 $storageNearlyFull = $storagePercent >= 90 && !$storageExceeded;
 
 // Get recent files
-$stmt_recent = $conn->prepare("SELECT id, file_name, file_path, uploaded_at FROM uploads WHERE user_id = ? ORDER BY uploaded_at DESC LIMIT 5");
+$stmt_recent = $conn->prepare("SELECT u.id, u.file_name, u.file_path, u.uploaded_at, cp.token AS cv_token FROM uploads u LEFT JOIN cv_profiles cp ON cp.upload_id = u.id WHERE u.user_id = ? ORDER BY u.uploaded_at DESC LIMIT 5");
 $stmt_recent->bind_param("i", $user['id']);
 $stmt_recent->execute();
 $result_recent = $stmt_recent->get_result();
@@ -542,7 +542,6 @@ $stmt_recent->close();
             header {
                 flex-direction: column;
                 text-align: center;
-                padding: 20px;
             }
 
             .user-info {
@@ -818,6 +817,11 @@ $stmt_recent->close();
                                     <div class="file-date"><?= date('d/m/Y H:i', strtotime($file['uploaded_at'])) ?></div>
                                 </div>
                                 <div class="file-actions">
+                                    <?php if (!empty($file['cv_token'])): ?>
+                                    <a href="cv_view.php?token=<?= urlencode($file['cv_token']) ?>" target="_blank" class="file-action" title="Xem CV online" style="background:#e8fff8; color:#00b37a;">
+                                        <i class="fas fa-id-card"></i>
+                                    </a>
+                                    <?php endif; ?>
                                     <a href="<?= htmlspecialchars($file['file_path']) ?>" target="_blank" class="file-action" title="Xem file">
                                         <i class="fas fa-eye"></i>
                                     </a>
