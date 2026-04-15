@@ -5,3 +5,4 @@ settings.json
 Caddyfile
 Dockerfile
 docker-compose.yml
+.htaccess
