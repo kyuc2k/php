@@ -77,3 +77,19 @@ CREATE TABLE IF NOT EXISTS `payments` (
     `completed_at`   DATETIME      DEFAULT NULL,
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table: activity_logs
+-- Stores user activity logs for auditing and analytics
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `activity_logs` (
+    `id`         INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id`    INT           NULL,
+    `action`     VARCHAR(50)   NOT NULL,
+    `details`    TEXT          NULL,
+    `ip_address` VARCHAR(45)   NULL,
+    `created_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user   (user_id),
+    INDEX idx_action (action),
+    INDEX idx_time   (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

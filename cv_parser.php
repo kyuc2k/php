@@ -43,14 +43,11 @@ function cv_extractPhoto(string $pdfPath, string $savePath): bool {
 function cv_parseFromFile(string $absoluteFilePath): array {
     $apiKey = getenv('GEMINI_API_KEY');
     if (!$apiKey) {
-        error_log("Gemini API: GEMINI_API_KEY not set");
         return [];
     }
 
-    error_log("Gemini API: API key exists, length: " . strlen($apiKey));
     $pdfBytes = @file_get_contents($absoluteFilePath);
     if (!$pdfBytes) {
-        error_log("Gemini API: Cannot read PDF file: $absoluteFilePath");
         return [];
     }
 
@@ -93,9 +90,7 @@ function cv_parseFromFile(string $absoluteFilePath): array {
         'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 4096],
     ]);
 
-    error_log("Gemini API: Payload size: " . strlen($payload));
     $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' . urlencode($apiKey);
-    error_log("Gemini API: URL: " . substr($url, 0, 100));
 
     $ctx = stream_context_create([
         'http' => [
@@ -111,23 +106,16 @@ function cv_parseFromFile(string $absoluteFilePath): array {
     $response = @file_get_contents($url, false, $ctx);
     if (!$response) {
         $error = error_get_last();
-        error_log("Gemini API: No response received. Error: " . ($error['message'] ?? 'Unknown'));
-        // Return error info for debugging
         return ['error' => 'No response from Gemini API: ' . ($error['message'] ?? 'Unknown')];
     }
 
-    error_log("Gemini API Response length: " . strlen($response));
-    error_log("Gemini API Response: " . substr($response, 0, 500));
     $data = json_decode($response, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
-        error_log("Gemini API: JSON decode error: " . json_last_error_msg());
         return ['error' => 'JSON decode error: ' . json_last_error_msg()];
     }
 
-    error_log("Gemini API Data structure: " . print_r($data, true));
     $raw  = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
     if (!$raw) {
-        error_log("Gemini API: No text in response. Full data: " . print_r($data, true));
         return ['error' => 'No text in Gemini response'];
     }
 
