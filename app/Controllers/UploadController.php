@@ -86,7 +86,12 @@ class UploadController
                     $filePath     = $uploadDir . $fileName;
                     $relativePath = 'uploads/' . $fileName;
 
-                    if (rename($tempPath, $filePath)) {
+                    // Check harmful content before moving file from temp
+                    $harmfulCheck = cv_checkHarmfulContent($tempPath);
+                    if ($harmfulCheck['is_harmful']) {
+                        $message = 'File chứa nội dung không phù hợp: ' . htmlspecialchars($harmfulCheck['reason']) . '. Upload bị từ chối.';
+                        if (file_exists($tempPath)) unlink($tempPath);
+                    } elseif (rename($tempPath, $filePath)) {
                         $fileSize    = filesize($filePath);
                         $newUploadId = $uploadModel->create($userId, $fileName, $relativePath, $fileSize);
                         if (file_exists($tempPath)) unlink($tempPath);
@@ -163,7 +168,11 @@ class UploadController
                     $filePath     = $uploadDir . $fileName;
                     $relativePath = 'uploads/' . $fileName;
 
-                    if (move_uploaded_file($file['tmp_name'], $filePath)) {
+                    // Check harmful content before saving file
+                    $harmfulCheck = cv_checkHarmfulContent($file['tmp_name']);
+                    if ($harmfulCheck['is_harmful']) {
+                        $uploadError = 'File chứa nội dung không phù hợp: ' . htmlspecialchars($harmfulCheck['reason']) . '. Upload bị từ chối.';
+                    } elseif (move_uploaded_file($file['tmp_name'], $filePath)) {
                         $fileSize    = filesize($filePath);
                         $newUploadId = $uploadModel->create($userId, $fileName, $relativePath, $fileSize);
 

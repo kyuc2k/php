@@ -135,3 +135,88 @@ function cv_parseFromFile(string $absoluteFilePath): array {
     return $parsed;
 }
 
+/**
+ * Check if a PDF file contains harmful content (violence, pornography, war, anti-government).
+ * Returns array with 'is_harmful' (bool) and 'reason' (string) if harmful.
+ */
+function cv_checkHarmfulContent(string $absoluteFilePath): array {
+    $apiKey = getenv('GEMINI_API_KEY');
+    if (!$apiKey) {
+        return ['is_harmful' => false, 'reason' => ''];
+    }
+
+    $pdfBytes = @file_get_contents($absoluteFilePath);
+    if (!$pdfBytes) {
+        return ['is_harmful' => false, 'reason' => ''];
+    }
+
+    $prompt = 'You are a content safety checker. Analyze the attached PDF document and determine if it contains ANY of the following harmful content: '
+            . '1) Violence, gore, or graphic content '
+            . '2) Pornography or sexually explicit material '
+            . '3) War-related content, weapons, or military propaganda '
+            . '4) Anti-government or political extremism content '
+            . '5) Hate speech or discriminatory content '
+            . '6) Illegal activities or criminal content '
+            . 'Return ONLY a valid JSON object (no markdown, no explanation) with these fields: '
+            . '"is_harmful" (boolean: true if any harmful content is found, false otherwise), '
+            . '"reason" (string: brief explanation of what harmful content was detected, or "No harmful content detected" if safe). '
+            . 'Be conservative - if uncertain, mark as harmful and explain why.';
+
+    $payload = json_encode([
+        'contents' => [[
+            'parts' => [
+                [
+                    'inline_data' => [
+                        'mime_type' => 'application/pdf',
+                        'data'      => base64_encode($pdfBytes),
+                    ],
+                ],
+                ['text' => $prompt],
+            ],
+        ]],
+        'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 1024],
+    ]);
+
+    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' . urlencode($apiKey);
+
+    $ctx = stream_context_create([
+        'http' => [
+            'method'        => 'POST',
+            'header'        => "Content-Type: application/json\r\n",
+            'content'       => $payload,
+            'timeout'       => 60,
+            'ignore_errors' => true,
+        ],
+        'ssl' => ['verify_peer' => false],
+    ]);
+
+    $response = @file_get_contents($url, false, $ctx);
+    if (!$response) {
+        // If API fails, allow upload (fail-safe)
+        return ['is_harmful' => false, 'reason' => ''];
+    }
+
+    $data = json_decode($response, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        return ['is_harmful' => false, 'reason' => ''];
+    }
+
+    $raw = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+    if (!$raw) {
+        return ['is_harmful' => false, 'reason' => ''];
+    }
+
+    $raw = preg_replace('/^```(?:json)?\s*/i', '', trim($raw));
+    $raw = preg_replace('/\s*```$/m', '', $raw);
+
+    $result = json_decode(trim($raw), true);
+    if (!is_array($result)) {
+        return ['is_harmful' => false, 'reason' => ''];
+    }
+
+    return [
+        'is_harmful' => !empty($result['is_harmful']),
+        'reason' => $result['reason'] ?? 'Nội dung không phù hợp được phát hiện'
+    ];
+}
+

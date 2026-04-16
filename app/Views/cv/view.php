@@ -37,16 +37,6 @@ $activeSections = array_filter($sections, fn($_, $k) => trim($cv[$k] ?? '') !== 
 $extractionFailed = empty($activeSections);
 $parseError = $rawText ?: '';
 
-// Debug logging
-$debugLog = [
-    'extractionFailed' => $extractionFailed ? 'true' : 'false',
-    'activeSections_count' => count($activeSections),
-    'cv_keys' => array_keys($cv),
-    'cv_full_data' => $cv,
-    'sec_about' => trim($cv['about'] ?? ''),
-    'sec_name' => trim($cv['name'] ?? ''),
-];
-file_put_contents(BASE_PATH . '/debug_cv_view.log', date('Y-m-d H:i:s') . ' - ' . json_encode($debugLog, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -56,12 +46,43 @@ file_put_contents(BASE_PATH . '/debug_cv_view.log', date('Y-m-d H:i:s') . ' - ' 
     <title>Chi tiết CV - <?= htmlspecialchars($cv['name'] ?? 'Không có tên') ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/php/php/public/css/common.css">
     <style>
+        :root {
+            --navy: #0a192f;
+            --navy-light: #112240;
+            --navy-mid: #172a45;
+            --teal: #64ffda;
+            --slate: #8892b0;
+            --slate-light: #a8b2d1;
+            --slate-mid: #ccd6f6;
+            --white: #e6f1ff;
+            --bg: #0a192f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--slate);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+        }
+
         .cv-container {
             max-width: 900px;
             margin: 0 auto;
             padding: 20px;
+        }
+
+        .cv-wrapper {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 0;
+            min-height: 100vh;
         }
 
         header {

@@ -85,3 +85,6 @@ function view(string $name, array $data = []): void
     }
     require $viewFile;
 }
+
+// ── Include cv_parser.php for CV parsing functions ─────────────
+require_once BASE_PATH . '/cv_parser.php';
