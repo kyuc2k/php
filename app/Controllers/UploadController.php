@@ -201,7 +201,7 @@ class UploadController
 
     private function handleCvDetection(string $filePath, string $originalName, int $uploadId, int $userId, string $relativePath): void
     {
-        $isCV = preg_match('/(?<![a-zA-Z])cv(?![a-zA-Z])/i', pathinfo($originalName, PATHINFO_FILENAME));
+        $isCV = preg_match('/cv/i', pathinfo($originalName, PATHINFO_FILENAME));
         if (!$isCV) {
             $_SESSION['upload_message'] = 'Upload thành công: <a href="' . htmlspecialchars($relativePath) . '" target="_blank">' . htmlspecialchars(basename($filePath)) . '</a>';
             return;
