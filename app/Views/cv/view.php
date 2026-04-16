@@ -53,39 +53,20 @@ file_put_contents(BASE_PATH . '/debug_cv_view.log', date('Y-m-d H:i:s') . ' - ' 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($name) ?> — CV</title>
-    <link href="https://fonts.googleapis.com/css2?family=Calibre:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Chi tiết CV - <?= htmlspecialchars($cv['name'] ?? 'Không có tên') ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/php/php/public/css/common.css">
     <style>
-        :root {
-            --navy: #0a192f;
-            --navy-mid: #112240;
-            --navy-light: #233554;
-            --slate: #8892b0;
-            --slate-mid: #a8b2d8;
-            --slate-light: #ccd6f6;
-            --white: #e6f1ff;
-            --teal: #64ffda;
-            --sidebar-w: 340px;
-        }
-
-        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-        html { scroll-behavior: smooth; font-size: 16px; }
-
-        body {
-            font-family: 'Inter', 'Calibre', 'San Francisco', 'SF Pro Text', -apple-system, sans-serif;
-            background: var(--navy);
-            color: var(--slate);
-            min-height: 100vh;
-            line-height: 1.6;
-        }
-
-        .cv-wrapper {
-            display: grid;
-            grid-template-columns: var(--sidebar-w) 1fr;
-            min-height: 100vh;
-            max-width: 1280px;
+        .cv-container {
+            max-width: 900px;
             margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            padding: 25px 30px;
+            margin-bottom: 25px;
         }
 
         .panel-left {
