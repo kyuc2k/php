@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - <?= htmlspecialchars($user['name']) ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            min-width: 80px;
+            min-height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            overflow: hidden;
+            font-size: 0.7rem;
+            color: transparent;
+        }
+
+        .user-avatar-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            border: 4px solid #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .user-details h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .user-details p {
+            color: #666;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-details i {
+            color: #667eea;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #666;
+            border: 2px solid #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .recent-files {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #667eea;
+        }
+
+        .file-list {
+            list-style: none;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .file-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+
+        .file-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .file-action {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            border: none;
+            background: white;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .file-action:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .file-action.delete:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .quick-actions {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .action-item {
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .action-item:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .action-item i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .action-item span {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            text-align: center;
+        }
+
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #fee;
+            color: #dc3545;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .modal-message {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .modal-file-name {
+            background: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #667eea;
+            word-break: break-all;
+            margin-bottom: 25px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .modal-btn-cancel {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        .modal-btn-confirm {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-confirm:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Storage Upgrade Banner */
+        .storage-upgrade-banner {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+            border: 2px dashed #fcc;
+            border-radius: 15px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .storage-upgrade-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .storage-upgrade-info .upgrade-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .storage-upgrade-info h3 {
+            font-size: 1.1rem;
+            color: #c00;
+            margin-bottom: 4px;
+        }
+
+        .storage-upgrade-info p {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .upgrade-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #f7b731 0%, #f5a623 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(247, 183, 49, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 15px;
+            }
+
+            header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .user-info {
+                flex-direction: column;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .storage-upgrade-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .storage-upgrade-info {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-container {
+                padding: 10px;
+            }
+
+            .user-avatar,
+            .user-avatar-placeholder {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+
+            .user-details h1 {
+                font-size: 1.5rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header>
+            <div class="user-info">
+                <?php if (isset($user['picture'])): ?>
+                    <img src="<?= htmlspecialchars($user['picture']) ?>" alt="<?= htmlspecialchars($user['name']) ?>" class="user-avatar" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                    <div class="user-avatar-placeholder" style="display:none;">
+                        <?= strtoupper(substr($user['name'], 0, 1)) ?>
+                    </div>
+                <?php else: ?>
+                    <div class="user-avatar-placeholder">
+                        <?= strtoupper(substr($user['name'], 0, 1)) ?>
+                    </div>
+                <?php endif; ?>
+                
+                <div class="user-details">
+                    <h1><?= htmlspecialchars($user['name']) ?></h1>
+                    <p><i class="fas fa-envelope"></i> <?= htmlspecialchars($user['email']) ?></p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <a href="upload.php" class="btn btn-primary">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Upload PDF
+                </a>
+                <a href="logout.php" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Đăng xuất
+                </a>
+            </div>
+        </header>
+
+        <?php if ($message): ?>
+            <div style="background: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                <i class="fas fa-check-circle"></i>
+                <?= htmlspecialchars($message) ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($storageExceeded || $storageNearlyFull): ?>
+            <div class="storage-upgrade-banner">
+                <div class="storage-upgrade-info">
+                    <div class="upgrade-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <?php if ($storageExceeded): ?>
+                            <h3>Hết dung lượng lưu trữ!</h3>
+                            <p>Bạn đã dùng hết <?= number_format($storageLimit / 1024 / 1024, 0) ?>MB dung lượng miễn phí. Xóa bớt file hoặc nâng cấp để tiếp tục upload.</p>
+                        <?php else: ?>
+                            <h3>Dung lượng gần đầy!</h3>
+                            <p>Đã dùng <?= number_format($stats['total_size'] / 1024 / 1024, 2) ?>MB / <?= number_format($storageLimit / 1024 / 1024, 0) ?>MB (còn <?= number_format(($storageLimit - $stats['total_size']) / 1024, 0) ?>KB trống).</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <a href="upgrade.php" class="upgrade-btn">
+                    <i class="fas fa-crown"></i>
+                    Nâng cấp Premium
+                </a>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($storageLimit === 1073741824): ?>
+            <div class="storage-upgrade-banner" style="background: linear-gradient(135deg, #f0f4ff 0%, #e0e9ff 100%); border-color: #c0d0ff;">
+                <div class="storage-upgrade-info">
+                    <div class="upgrade-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div>
+                        <h3 style="color: #4a5ba8;">Nâng cấp lên Gói Nóng cao - 2GB</h3>
+                        <p>Bạn đang dùng gói 1GB. Nâng lên 2GB chỉ với <strong>10.000 VNĐ</strong> (sau khi trừ gói 1GB đã mua) để có thêm dung lượng và ưu tiên hỗ trợ.</p>
+                    </div>
+                </div>
+                <a href="payment.php?plan=2gb" class="upgrade-btn" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                    <i class="fas fa-arrow-up"></i>
+                    Nâng cấp lên 2GB
+                </a>
+            </div>
+        <?php endif; ?>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <div class="stat-value"><?= number_format($stats['total_files']) ?></div>
+                <div class="stat-label">Tổng số file</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="stat-value"><?= $stats['total_size'] ? number_format($stats['total_size'] / 1024 / 1024, 2) : '0.00' ?> MB</div>
+                <div class="stat-label">Dung lượng (<?= $storagePercent ?>% / <?= number_format($storageLimit / 1024 / 1024, 0) ?>MB)</div>
+                <div style="margin-top: 10px; background: #e0e0e0; border-radius: 5px; height: 8px; overflow: hidden;">
+                    <div style="height: 100%; border-radius: 5px; width: <?= $storagePercent ?>%; background: <?= $storagePercent >= 90 ? 'linear-gradient(135deg, #dc3545, #c82333)' : ($storagePercent >= 70 ? 'linear-gradient(135deg, #f0ad4e, #ec971f)' : 'linear-gradient(135deg, #667eea, #764ba2)') ?>;"></div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-value"><?= date('d/m/Y') ?></div>
+                <div class="stat-label">Đăng nhập hôm nay</div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="recent-files">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-clock"></i>
+                        File gần đây
+                    </h2>
+                    <a href="upload.php" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.9rem;">
+                        <i class="fas fa-plus"></i>
+                        Thêm mới
+                    </a>
+                </div>
+                
+                <?php if (empty($recent_files)): ?>
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>Chưa có file nào được tải lên</p>
+                        <p>Hãy bắt đầu bằng việc tải lên file PDF đầu tiên!</p>
+                    </div>
+                <?php else: ?>
+                    <ul class="file-list">
+                        <?php foreach ($recent_files as $file): ?>
+                            <li class="file-item">
+                                <div class="file-icon">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div class="file-info">
+                                    <div class="file-name"><?= htmlspecialchars($file['file_name']) ?></div>
+                                    <div class="file-date"><?= date('d/m/Y H:i', strtotime($file['uploaded_at'])) ?></div>
+                                </div>
+                                <div class="file-actions">
+                                    <?php if (!empty($file['cv_token'])): ?>
+                                    <a href="cv_view.php?token=<?= urlencode($file['cv_token']) ?>" target="_blank" class="file-action" title="Xem CV online" style="background:#e8fff8; color:#00b37a;">
+                                        <i class="fas fa-id-card"></i>
+                                    </a>
+                                    <?php endif; ?>
+                                    <a href="<?= htmlspecialchars($file['file_path']) ?>" target="_blank" class="file-action" title="Xem file">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="file-action delete" title="Xóa file" onclick="showDeleteModal(<?= $file['id'] ?>, '<?= htmlspecialchars($file['file_name'], ENT_QUOTES) ?>')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </div>
+
+            <div class="quick-actions">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-bolt"></i>
+                        Thao tác nhanh
+                    </h2>
+                </div>
+                
+                <div class="action-grid">
+                    <a href="upload.php" class="action-item">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Upload File</span>
+                    </a>
+                    
+                    <a href="upload.php" class="action-item">
+                        <i class="fas fa-folder-open"></i>
+                        <span>Quản lý File</span>
+                    </a>
+                    
+                    <a href="activity_log.php" class="action-item">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Thống kê</span>
+                    </a>
+                    
+                    <a href="change_password.php" class="action-item">
+                        <i class="fas fa-key"></i>
+                        <span>Đổi mật khẩu</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 class="modal-title">Xác nhận xóa file</h3>
+            <div class="modal-message">
+                Bạn có chắc chắn muốn xóa file này không?
+                <div class="modal-file-name" id="modalFileName"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">
+                    <i class="fas fa-times"></i> Hủy
+                </button>
+                <button type="button" class="modal-btn modal-btn-confirm" id="confirmDeleteBtn">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <form id="deleteForm" method="post" style="display:none;">
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="file_id" id="deleteFileId">
+    </form>
+
+    <!-- Session Kicked Modal -->
+    <div id="sessionKickedModal" class="modal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-icon" style="background: linear-gradient(135deg, #ff9800 0%, #f44336 100%); color: white;">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h3 class="modal-title">Phiên đăng nhập đã kết thúc</h3>
+            <div class="modal-message">
+                Tài khoản của bạn vừa được đăng nhập trên một thiết bị khác. Vì lý do bảo mật, phiên hiện tại sẽ bị đăng xuất.
+            </div>
+            <div id="sessionKickedCountdown" style="font-size: 0.9rem; color: #999; margin-bottom: 20px;">
+                Tự động chuyển hướng sau <span id="countdownTimer">5</span> giây...
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 100%;" onclick="window.location.href='login.php'">
+                    <i class="fas fa-sign-in-alt"></i> Đăng nhập lại
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDeleteModal(fileId, fileName) {
+            document.getElementById('modalFileName').textContent = fileName;
+            document.getElementById('deleteFileId').value = fileId;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            document.getElementById('deleteForm').submit();
+        });
+
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDeleteModal();
+        });
+
+        // Real-time session check - polls every 3 seconds
+        let sessionKicked = false;
+        setInterval(function() {
+            if (sessionKicked) return;
+            fetch('check_session.php')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.valid && !sessionKicked) {
+                        sessionKicked = true;
+                        document.getElementById('sessionKickedModal').classList.add('show');
+                        let seconds = 5;
+                        const timer = setInterval(function() {
+                            seconds--;
+                            document.getElementById('countdownTimer').textContent = seconds;
+                            if (seconds <= 0) {
+                                clearInterval(timer);
+                                window.location.href = 'login.php';
+                            }
+                        }, 1000);
+                    }
+                })
+                .catch(() => {});
+        }, 3000);
+    </script>
+</body>
+</html>

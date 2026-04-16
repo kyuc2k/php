@@ -42,10 +42,17 @@ function cv_extractPhoto(string $pdfPath, string $savePath): bool {
  */
 function cv_parseFromFile(string $absoluteFilePath): array {
     $apiKey = getenv('GEMINI_API_KEY');
-    if (!$apiKey) return [];
+    if (!$apiKey) {
+        error_log("Gemini API: GEMINI_API_KEY not set");
+        return [];
+    }
 
+    error_log("Gemini API: API key exists, length: " . strlen($apiKey));
     $pdfBytes = @file_get_contents($absoluteFilePath);
-    if (!$pdfBytes) return [];
+    if (!$pdfBytes) {
+        error_log("Gemini API: Cannot read PDF file: $absoluteFilePath");
+        return [];
+    }
 
     $prompt = 'You are a CV/Resume parser. Read the attached PDF and extract all information. '
             . 'Return ONLY a valid JSON object (no markdown, no explanation) with these fields '
@@ -86,7 +93,9 @@ function cv_parseFromFile(string $absoluteFilePath): array {
         'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 4096],
     ]);
 
+    error_log("Gemini API: Payload size: " . strlen($payload));
     $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' . urlencode($apiKey);
+    error_log("Gemini API: URL: " . substr($url, 0, 100));
 
     $ctx = stream_context_create([
         'http' => [
@@ -100,11 +109,27 @@ function cv_parseFromFile(string $absoluteFilePath): array {
     ]);
 
     $response = @file_get_contents($url, false, $ctx);
-    if (!$response) return [];
+    if (!$response) {
+        $error = error_get_last();
+        error_log("Gemini API: No response received. Error: " . ($error['message'] ?? 'Unknown'));
+        // Return error info for debugging
+        return ['error' => 'No response from Gemini API: ' . ($error['message'] ?? 'Unknown')];
+    }
 
+    error_log("Gemini API Response length: " . strlen($response));
+    error_log("Gemini API Response: " . substr($response, 0, 500));
     $data = json_decode($response, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log("Gemini API: JSON decode error: " . json_last_error_msg());
+        return ['error' => 'JSON decode error: ' . json_last_error_msg()];
+    }
+
+    error_log("Gemini API Data structure: " . print_r($data, true));
     $raw  = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
-    if (!$raw) return [];
+    if (!$raw) {
+        error_log("Gemini API: No text in response. Full data: " . print_r($data, true));
+        return ['error' => 'No text in Gemini response'];
+    }
 
     $raw = preg_replace('/^```(?:json)?\s*/i', '', trim($raw));
     $raw = preg_replace('/\s*```$/m', '', $raw);
