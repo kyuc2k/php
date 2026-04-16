@@ -7,6 +7,7 @@
 
 session_start();
 require 'config.php';
+require_once 'activity_logger.php';
 
 $vnp_HashSecret = getenv('VNP_HASH_SECRET') ?: 'YOUR_VNPAY_HASH_SECRET';
 
@@ -196,6 +197,7 @@ if ($vnp_ResponseCode == '00') {
     $plans = ['1gb' => '1GB', '2gb' => '2GB'];
     $planLabel = $plans[$payment['plan'] ?? ''] ?? '';
 
+    log_activity($conn, $payment['user_id'], 'upgrade_plan', 'Nâng cấp lên gói ' . $planLabel . ' - Mã GD: ' . $vnp_TransactionNo);
     $_SESSION['upgrade_message'] = 'Thanh toán thành công! Đã nâng cấp lên gói ' . $planLabel . '. Email xác nhận đã được gửi.';
     $_SESSION['upgrade_message_type'] = 'success';
 } else {

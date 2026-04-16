@@ -2,8 +2,8 @@
 
 session_start();
 require 'config.php';
-
 require 'auth_check.php';
+require_once 'activity_logger.php';
 
 $user = $_SESSION['user'];
 $userId = $user['id'] ?? null;
@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmt->bind_param("ii", $fileId, $userId);
         $stmt->execute();
         $stmt->close();
+        log_activity($conn, $userId, 'delete_file', 'Xóa file: ' . $fileInfo['file_name']);
     }
     header("Location: dashboard.php");
     exit();
@@ -854,7 +855,7 @@ $stmt_recent->close();
                         <span>Quản lý File</span>
                     </a>
                     
-                    <a href="#" class="action-item" onclick="alert('Tính năng đang phát triển!')">
+                    <a href="activity_log.php" class="action-item">
                         <i class="fas fa-chart-bar"></i>
                         <span>Thống kê</span>
                     </a>

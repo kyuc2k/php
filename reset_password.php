@@ -2,6 +2,7 @@
 
 session_start();
 require 'config.php';
+require_once 'activity_logger.php';
 
 if (isset($_SESSION['user'])) {
     header("Location: dashboard.php");
@@ -52,6 +53,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->bind_param("ss", $newHash, $email);
             $stmt->execute();
             $stmt->close();
+
+            // Log activity
+            $stmt_uid = $conn->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt_uid->bind_param("s", $email);
+            $stmt_uid->execute();
+            $uidRow = $stmt_uid->get_result()->fetch_assoc();
+            $stmt_uid->close();
+            if ($uidRow) log_activity($conn, $uidRow['id'], 'reset_password', 'Đặt lại mật khẩu thành công');
 
             unset($_SESSION['reset_email']);
             unset($_SESSION['reset_verified']);

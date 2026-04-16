@@ -2,6 +2,7 @@
 
 session_start();
 require 'config.php';
+require_once 'activity_logger.php';
 
 if(isset($_GET['code'])) {
 
@@ -59,6 +60,7 @@ if(isset($_GET['code'])) {
                 $stmt->bind_param("ssss", $google_id, $name, $email, $avatar);
                 $stmt->execute();
                 $userId = $stmt->insert_id;
+                log_activity($conn, $userId, 'signup_google', 'Đăng ký bằng Google - ' . $email);
             } else {
                 $row = $result_check->fetch_assoc();
                 $userId = $row['id'];
@@ -91,6 +93,7 @@ if(isset($_GET['code'])) {
                 'picture' => $avatar,
             ];
             $_SESSION['session_token'] = $sessionToken;
+            log_activity($conn, $userId, 'login_google', 'Đăng nhập bằng Google - ' . $email);
             header("Location: dashboard.php");
             exit();
         }

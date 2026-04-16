@@ -2,6 +2,7 @@
 
 session_start();
 require 'config.php';
+require_once 'activity_logger.php';
 
 if (isset($_SESSION['user'])) {
     header("Location: dashboard.php");
@@ -53,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $mail->Body = "Xin chào " . $user['name'] . ",\n\nMã đặt lại mật khẩu của bạn là: $code\n\nMã này có hiệu lực trong 10 phút.\n\nNếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.";
 
         if ($mail->send()) {
+            log_activity($conn, $user['id'], 'forgot_password', 'Yêu cầu đặt lại mật khẩu - ' . $email);
             $_SESSION['reset_email'] = $email;
             header("Location: reset_password.php");
             exit();

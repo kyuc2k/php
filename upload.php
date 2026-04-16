@@ -1,8 +1,8 @@
 <?php
 session_start();
 require 'config.php';
-
 require 'auth_check.php';
+require_once 'activity_logger.php';
 
 $user = $_SESSION['user'];
 $userId = $user['id'] ?? null;
@@ -74,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmt->execute();
         $stmt->close();
 
+        log_activity($conn, $userId, 'delete_file', 'Xóa file: ' . $fileInfo['file_name']);
         $_SESSION['upload_message'] = 'Xóa file thành công.';
         header("Location: upload.php");
         exit();
@@ -140,6 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['temp_token']) && isse
                 } else {
                     $_SESSION['upload_message'] = 'Upload thành công: <a href="' . htmlspecialchars($relativePath) . '" target="_blank">' . htmlspecialchars($fileName) . '</a>';
                 }
+                log_activity($conn, $userId, 'upload_file', 'Upload file: ' . $fileName);
                 header("Location: upload.php");
                 exit();
             } else {
@@ -272,6 +274,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf_file'])) {
                     $_SESSION['upload_message'] = 'Upload thành công: <a href="' . htmlspecialchars($relativePath) . '" target="_blank">' . htmlspecialchars($fileName) . '</a>';
                 }
 
+                log_activity($conn, $userId, 'upload_file', 'Upload file: ' . $fileName);
                 // Redirect để tránh duplicate upload khi reload
                 header("Location: upload.php");
                 exit();

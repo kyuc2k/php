@@ -3,6 +3,7 @@
 session_start();
 require 'config.php';
 require 'auth_check.php';
+require_once 'activity_logger.php';
 
 $user = $_SESSION['user'];
 $message = '';
@@ -43,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt_update->bind_param("si", $newHash, $user['id']);
             $stmt_update->execute();
             $stmt_update->close();
+            log_activity($conn, $user['id'], 'change_password', 'Đổi mật khẩu thành công');
             $_SESSION['message'] = "Đổi mật khẩu thành công!";
             header("Location: dashboard.php");
             exit();
@@ -61,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt_update->bind_param("si", $newHash, $user['id']);
             $stmt_update->execute();
             $stmt_update->close();
+            log_activity($conn, $user['id'], 'change_password', 'Tạo mật khẩu mới (Google user)');
             $_SESSION['message'] = "Tạo mật khẩu thành công! Bạn có thể dùng email và mật khẩu để đăng nhập.";
             header("Location: dashboard.php");
             exit();

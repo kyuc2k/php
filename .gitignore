@@ -1,6 +1,7 @@
 .env
 settings.json
 *.pdf
+*.jpg
 *.ini
 Caddyfile
 Dockerfile

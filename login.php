@@ -2,6 +2,7 @@
 
 session_start();
 require 'config.php';
+require_once 'activity_logger.php';
 
 if (isset($_SESSION['user'])) {
     header("Location: dashboard.php");
@@ -43,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     'email' => $email,
                 ];
                 $_SESSION['session_token'] = $sessionToken;
+                log_activity($conn, $row['id'], 'login', 'Đăng nhập bằng email');
                 header("Location: dashboard.php");
                 exit();
             } else {
@@ -85,9 +87,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             }
         } else {
             $message = "Invalid password.";
+            log_activity($conn, $row['id'], 'login_failed', 'Sai mật khẩu - Email: ' . $email);
         }
     } else {
         $message = "User not found.";
+        log_activity($conn, null, 'login_failed', 'Email không tồn tại: ' . $email);
     }
     $stmt->close();
 }

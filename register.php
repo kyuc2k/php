@@ -2,6 +2,7 @@
 
 session_start();
 require 'config.php';
+require_once 'activity_logger.php';
 
 if (isset($_SESSION['user'])) {
     header("Location: dashboard.php");
@@ -41,6 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
         $stmt = $conn->prepare("INSERT INTO users (name, email, password, verification_code, email_verified, verification_code_expires) VALUES (?, ?, ?, ?, 0, DATE_ADD(NOW(), INTERVAL 5 MINUTE))");
         $stmt->bind_param("ssss", $name, $email, $password_hash, $code);
         if ($stmt->execute()) {
+            $newUserId = $stmt->insert_id;
+            log_activity($conn, $newUserId, 'signup', 'Đăng ký tài khoản - ' . $email);
             // Send email using PHPMailer
             require 'PHPMailer/src/PHPMailer.php';
             require 'PHPMailer/src/SMTP.php';
