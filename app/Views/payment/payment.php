@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <!-- QR lib kept as fallback if MoMo doesn't return qrCodeUrl -->
-    <link rel="stylesheet" href="/php/php/public/css/common.css">
+    <link rel="stylesheet" href="public/css/common.css">
     <style>
         .payment-container {
             max-width: 600px;
