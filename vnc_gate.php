@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+require 'config.php';
+
 $user=$_SESSION['user'];
 
 $res = $conn->query("
