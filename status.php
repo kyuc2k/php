@@ -1,6 +1,7 @@
 <?php
+session_start();
 
-require "nso/config.php";
+require "config.php";
 
 $user_id=getUser();
 
