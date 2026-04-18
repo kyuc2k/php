@@ -1,4 +1,4 @@
 <?php
-require_once __DIR__ . '/app/bootstrap.php';
-$controller = new AuthController($conn);
-$controller->logout();
+session_start();
+session_destroy();
+header("Location: nso/login.php");

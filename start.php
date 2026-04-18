@@ -1,5 +1,5 @@
 <?php
-require '../nso/config.php';
+require 'config.php';
 $id=$_GET['id'];
 
 $q=$conn->query("
@@ -17,4 +17,4 @@ SET status='running'
 WHERE id=$id
 ");
 
-header("Location: ../nso/dashboard.php");
+header("Location: dashboard.php");
