@@ -1,12 +1,18 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['vnc_token'])) {
-    header("Location: login.php");
-    exit;
-}
+$user=$_SESSION['user'];
 
-$token = $_SESSION['vnc_token'];
+$res = $conn->query("
+    SELECT * FROM vm_sessions
+    INNER JOIN instances on vm_sessions.user_id = instances.user_id
+    WHERE vm_sessions.user_id=".$user['id']."
+    AND vm_sessions.expires_at > NOW()
+");
+
+if ($res->num_rows == 0) {
+    die("Invalid or expired session");
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -15,10 +21,12 @@ $token = $_SESSION['vnc_token'];
 </head>
 <body>
 
-<iframe 
-  src="/vnc.html?token=<?php echo $token; ?>"
-  style="width:100%;height:100vh;border:none;">
-</iframe>
+<?php while($row=$res->fetch_assoc()){ ?>
+    <iframe 
+      src="http://103.245.236.153:<?= $row['port'] ?>/vnc.html"
+      style="width:100%;height:100vh;border:none;">
+    </iframe>
+<?php } ?>
 
 </body>
 </html>
