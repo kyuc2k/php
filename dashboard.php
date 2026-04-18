@@ -27,7 +27,7 @@ Status: <?= $row['status'] ?>
 
 <a href="stop.php?id=<?= $row['id'] ?>">Stop</a>
 
-<a href="vnc.php" target="_blank">Open VPS</a>
+<a href="vnc_gate.php" target="_blank">Open VPS</a>
 
 </div>
 

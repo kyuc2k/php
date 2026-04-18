@@ -6,7 +6,7 @@ require 'config.php';
 $user=$_SESSION['user'];
 
 $res = $conn->query("
-    SELECT * FROM vm_sessions
+    SELECT instances.port FROM vm_sessions
     INNER JOIN instances on vm_sessions.user_id = instances.user_id
     WHERE vm_sessions.user_id=".$user['id']."
     AND vm_sessions.expires_at > NOW()
