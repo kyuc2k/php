@@ -45,7 +45,7 @@ if ($output && !str_contains($output, 'error') && !str_contains($output, 'Error'
         VALUES ({$user['id']}, '$name', '$token', '$expire')
     ");
 
-    header("Location: /vnc.php?token=$token");
+    header("Location: dashboard.php");
     exit;
 
 } else {

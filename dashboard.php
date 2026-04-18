@@ -2,6 +2,12 @@
 
 require 'config.php';
 
+$token = $_GET['token'] ?? null;
+
+if (!$token) {
+    die("Missing token");
+}
+
 $user=$_SESSION['user'];
 
 $res=$conn->query("
@@ -27,7 +33,7 @@ Status: <?= $row['status'] ?>
 
 <a href="stop.php?id=<?= $row['id'] ?>">Stop</a>
 
-<a href="http://103.245.236.153:<?= $row['port'] ?>" target="_blank">
+<a href="/vnc.php?token=<?= $token ?>" target="_blank">
 Open VPS
 </a>
 

@@ -16,7 +16,7 @@ $token = $_SESSION['vnc_token'];
 <body>
 
 <iframe 
-  src="/novnc/vnc.html?token=<?php echo $token; ?>"
+  src="/vnc.html?token=<?php echo $token; ?>"
   style="width:100%;height:100vh;border:none;">
 </iframe>
 
