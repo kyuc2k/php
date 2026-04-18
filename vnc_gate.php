@@ -26,6 +26,7 @@ if ($res->num_rows == 0) {
 <?php while($row=$res->fetch_assoc()){ ?>
     <iframe 
       src="http://103.245.236.153:<?= $row['port'] ?>/vnc.html"
+      sandbox="allow-same-origin allow-scripts allow-forms"
       style="width:100%;height:100vh;border:none;">
     </iframe>
 <?php } ?>

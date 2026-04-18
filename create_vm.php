@@ -19,9 +19,10 @@ if (!is_dir($basePath)) {
 }
 
 $userPath = "user_" . $userId;
+$vnc_password = 123456;
 
 // ===== DOCKER COMMAND =====
-$cmd = "docker run -d --name $name -p $port:6001 -v /data/vms/$userPath:/app/game --memory=512m --cpus=1 micro-saas 2>&1";
+$cmd = "docker run -d --name $name -p $port:6001 -v /data/vms/$userPath:/app/game -e VNC_PASSWORD=$vnc_password --memory=512m --cpus=1 micro-saas 2>&1";
 
 // ch?y docker
 $output = shell_exec($cmd);
