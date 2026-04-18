@@ -1,18 +1,20 @@
 <?php
+require '../nso/config.php';
+$id=$_GET['id'];
 
-require "nso/config.php";
+$q=$conn->query("
+SELECT * FROM instances
+WHERE id=$id
+");
 
-$user_id=getUser();
+$vm=$q->fetch_assoc();
 
-$q=$conn->query("SELECT * FROM users WHERE id=$user_id");
-$user=$q->fetch_assoc();
+shell_exec("docker stop ".$vm['container_name']);
 
-$display=$user['display_id'];
+$conn->query("
+UPDATE instances
+SET status='stopped'
+WHERE id=$id
+");
 
-exec("bash /opt/java-cloud/stop.sh $display");
-
-$conn->query("UPDATE users SET status='stopped' WHERE id=$user_id");
-
-echo json_encode([
-"status"=>"stopped"
-]);
+header("Location: ../nso/dashboard.php");

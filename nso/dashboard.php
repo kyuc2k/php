@@ -1,50 +1,36 @@
 <?php
-require "nso/config.php";
 
-if(!getUser()){
-header("Location: nso/login.php");
-}
+require '../nso/config.php';
+
+$user=$_SESSION['user'];
+
+$res=$conn->query("
+SELECT * FROM instances
+WHERE user_id=".$user['id']
+);
 
 ?>
 
-<h2>Java Cloud Gaming</h2>
+<a href="create_vm.php">Create VPS</a>
 
-<button onclick="start()">Start</button>
-<button onclick="stop()">Stop</button>
+<hr>
 
-<div id="status"></div>
+<?php while($row=$res->fetch_assoc()){ ?>
 
-<br>
+<div>
 
-<iframe id="game" width="100%" height="700"></iframe>
+Container: <?= $row['container_name'] ?>
 
-<script>
+Status: <?= $row['status'] ?>
 
-function start(){
+<a href="../nso/start.php?id=<?= $row['id'] ?>">Start</a>
 
-fetch("api/start.php")
-.then(r=>r.json())
-.then(d=>{
+<a href="../nso/stop.php?id=<?= $row['id'] ?>">Stop</a>
 
-document.getElementById("status").innerHTML="Running"
+<a href="http://103.245.236.153:<?= $row['port'] ?>" target="_blank">
+Open VPS
+</a>
 
-document.getElementById("game").src=d.url
+</div>
 
-})
-
-}
-
-function stop(){
-
-fetch("api/stop.php")
-.then(()=>{
-
-document.getElementById("status").innerHTML="Stopped"
-
-document.getElementById("game").src=""
-
-})
-
-}
-
-</script>
+<?php } ?>

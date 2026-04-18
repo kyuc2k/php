@@ -1,31 +1,35 @@
 <?php
 
-require "nso/config.php";
+require '../nso/config.php';
 
 if($_POST){
 
-$username=$_POST['username'];
-$password=$_POST['password'];
+$u=$_POST['username'];
+$p=$_POST['password'];
 
-$q=$conn->query("SELECT * FROM users WHERE username='$username'");
+$q=$conn->query("
+SELECT * FROM users
+WHERE username='$u'
+");
+
 $user=$q->fetch_assoc();
 
-if(password_verify($password,$user['password'])){
+if(password_verify($p,$user['password'])){
 
-$_SESSION['user_id']=$user['id'];
+$_SESSION['user']=$user;
 
-header("Location: dashboard.php");
-
-}
+header("Location: ../nso/dashboard.php");
 
 }
 
+}
 ?>
 
 <form method="post">
 
 <input name="username">
-<input name="password" type="password">
+
+<input type="password" name="password">
 
 <button>Login</button>
 
