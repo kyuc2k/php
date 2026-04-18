@@ -12,22 +12,10 @@ $name = "vm_{$userId}_{$time}";
 
 // ===== PATH GAME RI�NG CHO USER =====
 $basePath = "/data/vms/user_" . $userId;
-//$gamePath = $basePath . "/THNJ.jar";
 
-// t?o folder n?u chua c�
 if (!is_dir($basePath)) {
     mkdir($basePath, 0755, true);
 }
-
-/**
- * IMPORTANT:
- * d?m b?o file game.jar d� t?n t?i
- * (upload tru?c d�)
- */
- 
-// if (!file_exists($gamePath)) {
-//    die("Game jar not found for user");
-//}
 
 $userPath = "user_" . $userId;
 
@@ -49,7 +37,15 @@ if ($output && !str_contains($output, 'error') && !str_contains($output, 'Error'
     $stmt->bind_param("isi", $userId, $name, $port);
     $stmt->execute();
 
-    header("Location: dashboard.php");
+    $token = bin2hex(random_bytes(16));
+    $expire = date("Y-m-d H:i:s", time() + 3600); // 1h
+
+    $conn->query("
+        INSERT INTO vm_sessions (user_id, vm_name, token, expires_at)
+        VALUES ({$user['id']}, '$name', '$token', '$expire')
+    ");
+
+    header("Location: /vnc.php?token=$token");
     exit;
 
 } else {

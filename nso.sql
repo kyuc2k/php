@@ -20,3 +20,11 @@ CREATE TABLE `instances` (
   `status` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+
+CREATE TABLE vm_sessions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  vm_name VARCHAR(255),
+  token VARCHAR(255),
+  expires_at DATETIME
+);
