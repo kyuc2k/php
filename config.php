@@ -1,7 +1,5 @@
 <?php
-
 session_start();
-
 $conn = new mysqli(
     getenv('DB_HOST') ?: '',
     getenv('DB_USER') ?: '',
