@@ -379,7 +379,19 @@ class AuthController {
         }
 
         $userId = $_SESSION['user']['id'];
-        $logs = $this->userLog->getByUserId($userId);
+        $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+        $limit = 20;
+        $offset = ($page - 1) * $limit;
+
+        $action = $_GET['action'] ?? null;
+        $sort = $_GET['sort'] ?? 'created_at';
+        $order = $_GET['order'] ?? 'DESC';
+
+        $logs = $this->userLog->getByUserId($userId, $limit, $offset, $action, $sort, $order);
+        $totalLogs = $this->userLog->countByUserId($userId, $action);
+        $totalPages = ceil($totalLogs / $limit);
+        $actions = $this->userLog->getDistinctActions($userId);
+
         require __DIR__ . '/../View/logs.php';
     }
 
