@@ -2,10 +2,12 @@
 
 require_once __DIR__ . '/../Model/Instance.php';
 require_once __DIR__ . '/../Model/UploadedFile.php';
+require_once __DIR__ . '/../Model/User.php';
 
 class DashboardController {
     private $instanceModel;
     private $uploadedFileModel;
+    private $userModel;
 
     public function __construct() {
         if (session_status() === PHP_SESSION_NONE) {
@@ -13,6 +15,7 @@ class DashboardController {
         }
         $this->instanceModel = new Instance();
         $this->uploadedFileModel = new UploadedFile();
+        $this->userModel = new User();
     }
 
     public function index() {
