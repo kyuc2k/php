@@ -97,6 +97,8 @@ CREATE TABLE rentals (
   start_date DATETIME DEFAULT CURRENT_TIMESTAMP,
   end_date DATETIME,
   status VARCHAR(20) DEFAULT 'active',
+  vps_url VARCHAR(255),
+  vps_password VARCHAR(255),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (package_id) REFERENCES rental_packages(id)

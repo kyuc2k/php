@@ -37,6 +37,13 @@ class Rental {
 
         $stmt = $this->db->prepare("INSERT INTO rentals (user_id, package_id, start_date, end_date, status) VALUES (?, ?, ?, ?, 'active')");
         $stmt->bind_param("iiss", $userId, $packageId, $startDate, $endDate);
+        $stmt->execute();
+        return $this->db->insert_id;
+    }
+
+    public function updateVpsInfo($rentalId, $vpsUrl, $vpsPassword) {
+        $stmt = $this->db->prepare("UPDATE rentals SET vps_url = ?, vps_password = ? WHERE id = ?");
+        $stmt->bind_param("ssi", $vpsUrl, $vpsPassword, $rentalId);
         return $stmt->execute();
     }
 
