@@ -83,7 +83,10 @@
                                 <td><?= htmlspecialchars($rental['start_date']) ?></td>
                                 <td><?= htmlspecialchars($rental['end_date']) ?></td>
                                 <td>
-                                    <?php if ($rental['status'] == 'active' && $rental['end_date'] > date('Y-m-d H:i:s')): ?>
+                                    <?php 
+                                    $endDate = strtotime($rental['end_date']);
+                                    $now = time();
+                                    if ($rental['status'] == 'active' && $endDate > $now): ?>
                                         <span class="status-active">Đang hoạt động</span>
                                     <?php else: ?>
                                         <span class="status-expired">Đã hết hạn</span>

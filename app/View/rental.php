@@ -12,17 +12,12 @@
         <h1>Thuê VPS</h1>
         <div class="user-info">
             <a href="/dashboard" class="btn">Quay lại Dashboard</a>
+            <span class="balance-display">Số dư: <?= number_format($balance, 0, ',', '.') ?> VNĐ</span>
             <a href="/logout" class="btn btn-danger">Đăng xuất</a>
         </div>
     </div>
     
     <div class="dashboard-content">
-        <div class="balance-section">
-            <h2>Số dư tài khoản</h2>
-            <p class="balance-amount"><?= number_format($balance, 0, ',', '.') ?> VNĐ</p>
-            <a href="/deposit" class="btn btn-success">Nạp thêm tiền</a>
-        </div>
-        
         <?php if (!empty($rentals)): ?>
             <div class="active-rental">
                 <h2>Gói thuê của bạn (<?= count($rentals) ?>)</h2>
@@ -47,7 +42,10 @@
                                     <td><?= htmlspecialchars($rental['start_date']) ?></td>
                                     <td><?= htmlspecialchars($rental['end_date']) ?></td>
                                     <td>
-                                        <?php if ($rental['status'] == 'active' && $rental['end_date'] > date('Y-m-d H:i:s')): ?>
+                                        <?php 
+                                        $endDate = strtotime($rental['end_date']);
+                                        $now = time();
+                                        if ($rental['status'] == 'active' && $endDate > $now): ?>
                                             <span class="status-active">Đang hoạt động</span>
                                         <?php else: ?>
                                             <span class="status-expired">Đã hết hạn</span>
@@ -80,7 +78,11 @@
                         <div class="package-body">
                             <p class="package-duration"><?= $package['duration_months'] ?> tháng</p>
                             <p class="package-description"><?= htmlspecialchars($package['description']) ?></p>
-                            <button type="button" class="btn btn-primary btn-block" onclick="showRentalModal(<?= $package['id'] ?>, '<?= htmlspecialchars($package['name']) ?>', <?= number_format($package['price'], 0, ',', '.') ?>)">Thuê ngay</button>
+                            <?php if ($balance >= $package['price']): ?>
+                                <button type="button" class="btn btn-primary btn-block" onclick="showRentalModal(<?= $package['id'] ?>, '<?= htmlspecialchars($package['name']) ?>', <?= number_format($package['price'], 0, ',', '.') ?>)">Thuê ngay</button>
+                            <?php else: ?>
+                                <button type="button" class="btn btn-primary btn-block" disabled>Không đủ tiền</button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -265,6 +267,115 @@
             border-bottom: none;
         }
         
+        .btn-disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #e74c3c;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            line-height: 1;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-body p {
+            margin: 10px 0;
+            color: #333;
+        }
+        
+        .modal-body strong {
+            color: #e74c3c;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-footer .btn {
+            padding: 10px 20px;
+            min-width: 100px;
+        }
+        
+        @media (max-width: 480px) {
+            .modal-content {
+                width: 95%;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
+            }
+        }
+        
         .packages-section {
             background: white;
             padding: 30px;
@@ -326,48 +437,13 @@
             margin-bottom: 10px;
         }
         
-        .modal-content {
-            width: 95%;
-            color: #333;
-        }
-        
-        .modal-body {
-            padding: 20px;
-        }
-        
-        .modal-body p {
-            margin: 10px 0;
-            color: #333;
-        }
-        
-        .modal-body strong {
-            color: #e74c3c;
-        }
-        
-        .modal-footer {
-            padding: 20px;
-            border-top: 1px solid #ddd;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        
-        .modal-footer .btn {
-            padding: 10px 20px;
-            min-width: 100px;
-        }
-        
         @media (max-width: 480px) {
-            .modal-content {
-                width: 95%;
+            .packages-grid {
+                grid-template-columns: 1fr;
             }
             
-            .modal-footer {
-                flex-direction: column;
-            }
-            
-            .modal-footer .btn {
-                width: 100%;
+            .balance-amount {
+                font-size: 28px;
             }
         }
         
