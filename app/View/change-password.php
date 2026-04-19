@@ -20,13 +20,17 @@
             <?php if (isset($success)): ?>
                 <div class="success"><?= htmlspecialchars($success) ?></div>
             <?php endif; ?>
-            <input type="password" name="current_password" placeholder="Mật khẩu hiện tại" required autocomplete="current-password">
+            <?php if (!empty($_SESSION['user']['google_id'])): ?>
+                <div class="info">Bạn đang đăng nhập bằng Google. Bạn có thể đặt mật khẩu để đăng nhập bằng email/password sau này.</div>
+            <?php else: ?>
+                <input type="password" name="current_password" placeholder="Mật khẩu hiện tại" required autocomplete="current-password">
+            <?php endif; ?>
             <input type="password" name="new_password" placeholder="Mật khẩu mới" required autocomplete="new-password" value="<?= htmlspecialchars($_POST['new_password'] ?? '') ?>">
             <div class="password-hint">
                 Password phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
             </div>
             <input type="password" name="confirm_password" placeholder="Xác nhận mật khẩu mới" required autocomplete="new-password" value="<?= htmlspecialchars($_POST['confirm_password'] ?? '') ?>">
-            <button type="submit">Đổi mật khẩu</button>
+            <button type="submit"><?= !empty($_SESSION['user']['google_id']) ? 'Đặt mật khẩu' : 'Đổi mật khẩu' ?></button>
         </form>
         <div class="register-link">
             <a href="/dashboard">Quay lại Dashboard</a>

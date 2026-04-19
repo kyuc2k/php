@@ -418,14 +418,24 @@ class AuthController {
             exit;
         }
 
+        $user = $_SESSION['user'];
+        $isGoogleUser = !empty($user['google_id']);
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $currentPassword = $_POST['current_password'] ?? '';
             $newPassword = $_POST['new_password'] ?? '';
             $confirmPassword = $_POST['confirm_password'] ?? '';
-            $userId = $_SESSION['user']['id'];
+            $userId = $user['id'];
 
             // Validate input
-            if (empty($currentPassword) || empty($newPassword)) {
+            if (empty($newPassword)) {
+                $error = 'Vui lòng điền mật khẩu mới';
+                require __DIR__ . '/../View/change-password.php';
+                return;
+            }
+
+            // For non-Google users, require current password
+            if (!$isGoogleUser && empty($currentPassword)) {
                 $error = 'Vui lòng điền đầy đủ thông tin';
                 require __DIR__ . '/../View/change-password.php';
                 return;
@@ -468,22 +478,22 @@ class AuthController {
                 return;
             }
 
-            // Check if new password is same as current password
-            if ($currentPassword === $newPassword) {
+            // Check if new password is same as current password (for non-Google users)
+            if (!$isGoogleUser && $currentPassword === $newPassword) {
                 $error = 'Mật khẩu mới không được trùng với mật khẩu hiện tại';
                 require __DIR__ . '/../View/change-password.php';
                 return;
             }
 
             // Change password
-            $result = $this->userModel->changePassword($userId, $currentPassword, $newPassword);
+            $result = $this->userModel->changePassword($userId, $currentPassword, $newPassword, $isGoogleUser);
             
             if ($result) {
-                $this->userLog->create($userId, 'PASSWORD_CHANGED', 'User changed password');
+                $this->userLog->create($userId, 'PASSWORD_CHANGED', $isGoogleUser ? 'Google user set password' : 'User changed password');
                 header('Location: /dashboard?success=password_changed');
                 exit;
             } else {
-                $error = 'Mật khẩu hiện tại không đúng';
+                $error = $isGoogleUser ? 'Đặt mật khẩu thất bại. Vui lòng thử lại.' : 'Mật khẩu hiện tại không đúng';
                 require __DIR__ . '/../View/change-password.php';
                 return;
             }

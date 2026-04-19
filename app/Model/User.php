@@ -86,21 +86,24 @@ class User {
         return $stmt->execute();
     }
 
-    public function changePassword($userId, $currentPassword, $newPassword) {
-        // Get current password from database
-        $stmt = $this->db->prepare("SELECT password FROM users WHERE id = ?");
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-        
-        if (!$user) {
-            return false;
-        }
-        
-        // Verify current password
-        if (!password_verify($currentPassword, $user['password'])) {
-            return false;
+    public function changePassword($userId, $currentPassword, $newPassword, $isGoogleUser = false) {
+        // For Google users setting password for first time, skip current password check
+        if (!$isGoogleUser) {
+            // Get current password from database
+            $stmt = $this->db->prepare("SELECT password FROM users WHERE id = ?");
+            $stmt->bind_param("i", $userId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $user = $result->fetch_assoc();
+            
+            if (!$user) {
+                return false;
+            }
+            
+            // Verify current password
+            if (!password_verify($currentPassword, $user['password'])) {
+                return false;
+            }
         }
         
         // Update password
