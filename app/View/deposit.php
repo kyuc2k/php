@@ -71,23 +71,35 @@
             <?php if (empty($deposits)): ?>
                 <div class="info">Chưa có giao dịch nào.</div>
             <?php else: ?>
-                <div class="deposits-list">
-                    <?php foreach ($deposits as $deposit): ?>
-                        <div class="deposit-item status-<?= $deposit['status'] ?>">
-                            <div class="deposit-info">
-                                <h3><?= number_format($deposit['amount'], 0, ',', '.') ?> VNĐ</h3>
-                                <p>Mã giao dịch: <?= htmlspecialchars($deposit['vnp_txn_ref']) ?></p>
-                                <p>Thời gian: <?= htmlspecialchars($deposit['created_at']) ?></p>
-                                <?php if ($deposit['status'] == 'success'): ?>
-                                    <p>Trạng thái: <span class="status-success">Thành công</span></p>
-                                <?php elseif ($deposit['status'] == 'failed'): ?>
-                                    <p>Trạng thái: <span class="status-failed">Thất bại</span></p>
-                                <?php else: ?>
-                                    <p>Trạng thái: <span class="status-pending">Đang xử lý</span></p>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Số tiền</th>
+                                <th>Mã giao dịch</th>
+                                <th>Thời gian</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($deposits as $deposit): ?>
+                                <tr>
+                                    <td><?= number_format($deposit['amount'], 0, ',', '.') ?> VNĐ</td>
+                                    <td><?= htmlspecialchars($deposit['vnp_txn_ref']) ?></td>
+                                    <td><?= htmlspecialchars($deposit['created_at']) ?></td>
+                                    <td>
+                                        <?php if ($deposit['status'] == 'success'): ?>
+                                            <span style="background: #28a745; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;">Thành công</span>
+                                        <?php elseif ($deposit['status'] == 'failed'): ?>
+                                            <span style="background: #dc3545; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;">Thất bại</span>
+                                        <?php else: ?>
+                                            <span style="background: #ffc107; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;">Đang xử lý</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             <?php endif; ?>
         </div>
