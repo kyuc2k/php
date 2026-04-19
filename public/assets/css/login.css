@@ -4,6 +4,9 @@ body {
     padding: 50px;
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
     min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .login-container {
@@ -102,12 +105,14 @@ body {
 /* Responsive styles for mobile */
 @media (max-width: 768px) {
     body {
-        padding: 25px;
+        padding: 20px;
     }
     
     .login-container {
         padding: 35px 25px;
         border-radius: 8px;
+        width: 100%;
+        max-width: 400px;
     }
     
     .login-container h2 {
@@ -141,12 +146,14 @@ body {
 
 @media (max-width: 480px) {
     body {
-        padding: 20px;
+        padding: 15px;
     }
     
     .login-container {
         padding: 30px 20px;
         border-radius: 8px;
+        width: 100%;
+        max-width: 350px;
     }
     
     .login-container h2 {
