@@ -28,7 +28,7 @@
                             <p class="package-duration"><?= $package['duration_months'] ?> tháng</p>
                             <p class="package-description"><?= htmlspecialchars($package['description']) ?></p>
                             <?php if ($balance >= $package['price']): ?>
-                                <button type="button" class="btn btn-primary btn-block" onclick="showRentalModal(<?= $package['id'] ?>, '<?= htmlspecialchars($package['name']) ?>', <?= $package['price'] ?>)">Thuê ngay</button>
+                                <button type="button" class="btn btn-primary btn-block" onclick="showRentalModal(<?= $package['id'] ?>, '<?= htmlspecialchars($package['name']) ?>', <?= $package['price'] ?>, this)">Thuê ngay</button>
                             <?php else: ?>
                                 <a href="/deposit" class="btn btn-primary btn-block" style="text-align: center; display: block; text-decoration: none;">Không đủ tiền - Nạp ngay</a>
                             <?php endif; ?>
@@ -109,36 +109,45 @@
     
     <script>
         let rentalPackageId = null;
-        
-        function showRentalModal(packageId, packageName, packagePrice) {
+        let clickedButton = null;
+
+        function showRentalModal(packageId, packageName, packagePrice, button) {
             rentalPackageId = packageId;
+            clickedButton = button;
             document.getElementById('rentalPackageName').textContent = packageName;
             document.getElementById('rentalPackagePrice').textContent = packagePrice.toLocaleString('vi-VN');
             document.getElementById('rentalModal').style.display = 'flex';
         }
-        
+
         function hideRentalModal() {
             document.getElementById('rentalModal').style.display = 'none';
             rentalPackageId = null;
+            clickedButton = null;
         }
-        
+
         function confirmRental() {
             if (rentalPackageId) {
+                // Disable confirm button and show loading
+                const confirmBtn = document.querySelector('.modal-footer .btn-primary');
+                const originalText = confirmBtn.textContent;
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<span class="spinner"></span> Đang xử lý...';
+
                 const form = document.createElement('form');
                 form.method = 'post';
                 form.action = '/rental';
-                
+
                 const input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = 'package_id';
                 input.value = rentalPackageId;
-                
+
                 form.appendChild(input);
                 document.body.appendChild(form);
                 form.submit();
             }
         }
-        
+
         // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('rentalModal');
@@ -147,6 +156,24 @@
             }
         }
     </script>
+
+    <style>
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
     
     <style>
         .balance-section {
