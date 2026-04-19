@@ -455,6 +455,13 @@ class AuthController {
                 return;
             }
 
+            // Check if new password is same as current password
+            if ($currentPassword === $newPassword) {
+                $error = 'Mật khẩu mới không được trùng với mật khẩu hiện tại';
+                require __DIR__ . '/../View/change-password.php';
+                return;
+            }
+
             // Change password
             $result = $this->userModel->changePassword($userId, $currentPassword, $newPassword);
             
