@@ -3,20 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - VPS Treo Game Java</title>
+    <title>Đăng ký - VPS Treo Game Java</title>
     <link rel="stylesheet" href="/public/assets/css/common.css">
-    <link rel="stylesheet" href="/public/assets/css/login.css">
+    <link rel="stylesheet" href="/public/assets/css/register.css">
 </head>
 <body>
-    <div class="login-container">
+    <div class="register-container">
         <form method="post">
-            <h2>Đăng nhập VPS Game</h2>
+            <h2>Đăng ký tài khoản</h2>
             <?php if (isset($error)): ?>
                 <div class="error"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
+            <?php if (isset($success)): ?>
+                <div class="success"><?= htmlspecialchars($success) ?></div>
+            <?php endif; ?>
             <input type="text" name="username" placeholder="Username" required>
+            <input type="email" name="email" placeholder="Email (Gmail)" required>
             <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Đăng nhập</button>
+            <input type="password" name="confirm_password" placeholder="Xác nhận Password" required>
+            <button type="submit">Đăng ký</button>
         </form>
         
         <div class="divider">
@@ -25,11 +30,11 @@
         
         <a href="/google-login" class="google-btn">
             <img src="https://www.google.com/favicon.ico" alt="Google">
-            Đăng nhập với Google
+            Đăng ký với Google
         </a>
         
-        <div class="register-link">
-            Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
+        <div class="login-link">
+            Đã có tài khoản? <a href="/login">Đăng nhập ngay</a>
         </div>
     </div>
 </body>

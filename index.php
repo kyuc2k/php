@@ -40,18 +40,28 @@ switch ($route) {
         $controller->login();
         break;
 
+    case '/register':
+        $controller = new AuthController();
+        $controller->register();
+        break;
+
     case '/logout':
         $controller = new AuthController();
         $controller->logout();
         break;
 
-    case '/dashboard':
-        $controller = new DashboardController();
-        $controller->index();
+    case '/google-login':
+        $controller = new AuthController();
+        $controller->googleLogin();
         break;
 
-    case '/admin':
-        $controller = new AdminController();
+    case '/google-callback':
+        $controller = new AuthController();
+        $controller->googleCallback();
+        break;
+
+    case '/dashboard':
+        $controller = new DashboardController();
         $controller->index();
         break;
 

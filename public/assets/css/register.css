@@ -1,4 +1,4 @@
-/* Page-specific styles for login page */
+/* Page-specific styles for register page */
 
 body {
     padding: 50px;
@@ -6,7 +6,7 @@ body {
     min-height: 100vh;
 }
 
-.login-container {
+.register-container {
     max-width: 400px;
     margin: 0 auto;
     background: white;
@@ -15,13 +15,13 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-.login-container h2 {
+.register-container h2 {
     text-align: center;
     margin-bottom: 30px;
     color: #e74c3c;
 }
 
-.login-container button {
+.register-container button {
     width: 100%;
     padding: 12px;
     background: #e74c3c;
@@ -32,7 +32,7 @@ body {
     font-size: 16px;
 }
 
-.login-container button:hover {
+.register-container button:hover {
     background: #c0392b;
 }
 
@@ -83,18 +83,18 @@ body {
     margin-right: 10px;
 }
 
-.register-link {
+.login-link {
     text-align: center;
     margin-top: 20px;
     font-size: 14px;
 }
 
-.register-link a {
+.login-link a {
     color: #e74c3c;
     text-decoration: none;
     font-weight: bold;
 }
 
-.register-link a:hover {
+.login-link a:hover {
     text-decoration: underline;
 }
