@@ -26,23 +26,37 @@
         <?php if (!empty($rentals)): ?>
             <div class="active-rental">
                 <h2>Gói thuê của bạn (<?= count($rentals) ?>)</h2>
-                <div class="rentals-list">
-                    <?php foreach ($rentals as $rental): ?>
-                        <div class="rental-item">
-                            <div class="rental-info">
-                                <h3><?= htmlspecialchars($rental['package_name']) ?></h3>
-                                <p>Thời hạn: <?= $rental['duration_months'] ?> tháng</p>
-                                <p>Giá: <?= number_format($rental['price'], 0, ',', '.') ?> VNĐ</p>
-                                <p>Ngày bắt đầu: <?= htmlspecialchars($rental['start_date']) ?></p>
-                                <p>Ngày kết thúc: <?= htmlspecialchars($rental['end_date']) ?></p>
-                                <?php if ($rental['status'] == 'active' && $rental['end_date'] > date('Y-m-d H:i:s')): ?>
-                                    <p>Trạng thái: <span class="status-active">Đang hoạt động</span></p>
-                                <?php else: ?>
-                                    <p>Trạng thái: <span class="status-expired">Đã hết hạn</span></p>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tên gói</th>
+                                <th>Thời hạn</th>
+                                <th>Giá</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Ngày kết thúc</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($rentals as $rental): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($rental['package_name']) ?></td>
+                                    <td><?= $rental['duration_months'] ?> tháng</td>
+                                    <td><?= number_format($rental['price'], 0, ',', '.') ?> VNĐ</td>
+                                    <td><?= htmlspecialchars($rental['start_date']) ?></td>
+                                    <td><?= htmlspecialchars($rental['end_date']) ?></td>
+                                    <td>
+                                        <?php if ($rental['status'] == 'active' && $rental['end_date'] > date('Y-m-d H:i:s')): ?>
+                                            <span class="status-active">Đang hoạt động</span>
+                                        <?php else: ?>
+                                            <span class="status-expired">Đã hết hạn</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         <?php endif; ?>
@@ -210,6 +224,45 @@
             margin: 5px 0;
             color: #666;
             font-size: 14px;
+        }
+        
+        /* Table styles */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .data-table thead {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .data-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
         }
         
         .packages-section {

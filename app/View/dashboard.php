@@ -62,23 +62,37 @@
         <?php if (empty($rentals)): ?>
             <div class="info">Bạn chưa thuê gói nào. <a href="/rental" class="btn btn-primary">Thuê gói ngay</a></div>
         <?php else: ?>
-            <div class="rentals-list">
-                <?php foreach ($rentals as $rental): ?>
-                    <div class="rental-item">
-                        <div class="rental-info">
-                            <h3><?= htmlspecialchars($rental['package_name']) ?></h3>
-                            <p>Thời hạn: <?= $rental['duration_months'] ?> tháng</p>
-                            <p>Giá: <?= number_format($rental['price'], 0, ',', '.') ?> VNĐ</p>
-                            <p>Ngày bắt đầu: <?= htmlspecialchars($rental['start_date']) ?></p>
-                            <p>Ngày kết thúc: <?= htmlspecialchars($rental['end_date']) ?></p>
-                            <?php if ($rental['status'] == 'active' && $rental['end_date'] > date('Y-m-d H:i:s')): ?>
-                                <p>Trạng thái: <span class="status-active">Đang hoạt động</span></p>
-                            <?php else: ?>
-                                <p>Trạng thái: <span class="status-expired">Đã hết hạn</span></p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tên gói</th>
+                            <th>Thời hạn</th>
+                            <th>Giá</th>
+                            <th>Ngày bắt đầu</th>
+                            <th>Ngày kết thúc</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rentals as $rental): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($rental['package_name']) ?></td>
+                                <td><?= $rental['duration_months'] ?> tháng</td>
+                                <td><?= number_format($rental['price'], 0, ',', '.') ?> VNĐ</td>
+                                <td><?= htmlspecialchars($rental['start_date']) ?></td>
+                                <td><?= htmlspecialchars($rental['end_date']) ?></td>
+                                <td>
+                                    <?php if ($rental['status'] == 'active' && $rental['end_date'] > date('Y-m-d H:i:s')): ?>
+                                        <span class="status-active">Đang hoạt động</span>
+                                    <?php else: ?>
+                                        <span class="status-expired">Đã hết hạn</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         <?php endif; ?>
     </div>
@@ -88,19 +102,29 @@
         <?php if (empty($files)): ?>
             <div class="info">Chưa có file nào được upload. <a href="/upload-file" class="btn btn-primary">Upload file đầu tiên</a></div>
         <?php else: ?>
-            <div class="files-list">
-                <?php foreach ($files as $file): ?>
-                    <div class="file-item">
-                        <div class="file-info">
-                            <h3><?= htmlspecialchars($file['original_name']) ?></h3>
-                            <p>Kích thước: <?= formatFileSize($file['file_size']) ?></p>
-                            <p>Upload lúc: <?= htmlspecialchars($file['uploaded_at']) ?></p>
-                        </div>
-                        <div class="file-actions">
-                            <a href="/upload-file" class="btn">Quản lý file</a>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tên file</th>
+                            <th>Kích thước</th>
+                            <th>Upload lúc</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($files as $file): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($file['original_name']) ?></td>
+                                <td><?= formatFileSize($file['file_size']) ?></td>
+                                <td><?= htmlspecialchars($file['uploaded_at']) ?></td>
+                                <td>
+                                    <a href="/upload-file" class="btn">Quản lý</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         <?php endif; ?>
     </div>
