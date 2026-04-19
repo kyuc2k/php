@@ -24,6 +24,9 @@
             <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
             <button type="submit">Đăng nhập</button>
         </form>
+        <div class="register-link">
+            <a href="/forgot-password">Quên mật khẩu?</a>
+        </div>
         
         <div class="divider">
             <span>hoặc</span>

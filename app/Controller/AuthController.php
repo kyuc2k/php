@@ -477,4 +477,174 @@ class AuthController {
         }
         require __DIR__ . '/../View/change-password.php';
     }
+
+    public function forgotPassword() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = $_POST['email'] ?? '';
+            
+            if (empty($email)) {
+                $error = 'Vui lòng nhập email';
+                require __DIR__ . '/../View/forgot-password.php';
+                return;
+            }
+            
+            $user = $this->userModel->getByEmail($email);
+            
+            if (!$user) {
+                $error = 'Email không tồn tại';
+                require __DIR__ . '/../View/forgot-password.php';
+                return;
+            }
+            
+            if (!empty($user['google_id'])) {
+                $error = 'Tài khoản này đăng nhập qua Google, không thể đặt lại mật khẩu';
+                require __DIR__ . '/../View/forgot-password.php';
+                return;
+            }
+            
+            // Create reset token
+            $this->userModel->createResetToken($email);
+            $user = $this->userModel->getByEmail($email);
+            $resetToken = $user['reset_token'];
+            
+            // Send reset email
+            $this->sendResetEmail($email, $resetToken);
+            
+            $success = 'Link đặt lại mật khẩu đã được gửi về email của bạn. Link có hiệu lực trong 1 giờ.';
+            require __DIR__ . '/../View/forgot-password.php';
+            return;
+        }
+        require __DIR__ . '/../View/forgot-password.php';
+    }
+
+    public function resetPassword() {
+        $token = $_GET['token'] ?? '';
+        
+        if (empty($token)) {
+            $error = 'Link không hợp lệ';
+            require __DIR__ . '/../View/reset-password.php';
+            return;
+        }
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $newPassword = $_POST['new_password'] ?? '';
+            $confirmPassword = $_POST['confirm_password'] ?? '';
+            $token = $_POST['token'] ?? '';
+            
+            // Validate input
+            if (empty($newPassword)) {
+                $error = 'Vui lòng điền mật khẩu mới';
+                require __DIR__ . '/../View/reset-password.php';
+                return;
+            }
+            
+            if ($newPassword !== $confirmPassword) {
+                $error = 'Mật khẩu xác nhận không khớp';
+                require __DIR__ . '/../View/reset-password.php';
+                return;
+            }
+            
+            if (strlen($newPassword) < 8) {
+                $error = 'Mật khẩu phải có ít nhất 8 ký tự';
+                require __DIR__ . '/../View/reset-password.php';
+                return;
+            }
+            
+            // Check password complexity
+            if (!preg_match('/[A-Z]/', $newPassword)) {
+                $error = 'Mật khẩu phải có ít nhất 1 chữ hoa';
+                require __DIR__ . '/../View/reset-password.php';
+                return;
+            }
+            
+            if (!preg_match('/[a-z]/', $newPassword)) {
+                $error = 'Mật khẩu phải có ít nhất 1 chữ thường';
+                require __DIR__ . '/../View/reset-password.php';
+                return;
+            }
+            
+            if (!preg_match('/[0-9]/', $newPassword)) {
+                $error = 'Mật khẩu phải có ít nhất 1 số';
+                require __DIR__ . '/../View/reset-password.php';
+                return;
+            }
+            
+            if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $newPassword)) {
+                $error = 'Mật khẩu phải có ít nhất 1 ký tự đặc biệt (!@#$%^&*...)';
+                require __DIR__ . '/../View/reset-password.php';
+                return;
+            }
+            
+            // Validate token
+            $user = $this->userModel->getByResetToken($token);
+            
+            if (!$user) {
+                $error = 'Link không hợp lệ hoặc đã hết hạn';
+                require __DIR__ . '/../View/reset-password.php';
+                return;
+            }
+            
+            // Reset password
+            $result = $this->userModel->resetPassword($user['id'], $newPassword);
+            
+            if ($result) {
+                $this->userLog->create($user['id'], 'PASSWORD_RESET', 'User reset password via email');
+                $success = 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.';
+                require __DIR__ . '/../View/reset-password.php';
+                return;
+            } else {
+                $error = 'Đặt lại mật khẩu thất bại. Vui lòng thử lại.';
+                require __DIR__ . '/../View/reset-password.php';
+                return;
+            }
+        }
+        require __DIR__ . '/../View/reset-password.php';
+    }
+
+    private function sendResetEmail($email, $resetToken) {
+        require_once __DIR__ . '/../../PHPMailer/src/PHPMailer.php';
+        require_once __DIR__ . '/../../PHPMailer/src/SMTP.php';
+        require_once __DIR__ . '/../../PHPMailer/src/Exception.php';
+
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        
+        try {
+            $mail->CharSet = 'UTF-8';
+            $mail->Encoding = 'base64';
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = getenv('GMAIL_USERNAME');
+            $mail->Password = getenv('GMAIL_APP_PASSWORD');
+            $mail->SMTPSecure = 'tls';
+            $mail->Port = 587;
+            
+            $mail->setFrom(getenv('GMAIL_USERNAME'), 'VPS Treo Game Java');
+            $mail->addAddress($email);
+            
+            $mail->isHTML(true);
+            $mail->Subject = 'Đặt lại mật khẩu - VPS Treo Game Java';
+            
+            $resetUrl = 'https://kyuc2k.pro/reset-password?token=' . $resetToken;
+            $mail->Body = "
+                <html>
+                <head>
+                    <title>Đặt lại mật khẩu</title>
+                </head>
+                <body>
+                    <h2>Đặt lại mật khẩu của bạn</h2>
+                    <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản tại VPS Treo Game Java.</p>
+                    <p>Vui lòng click vào link bên dưới để đặt lại mật khẩu:</p>
+                    <p><a href='$resetUrl'>$resetUrl</a></p>
+                    <p>Link này sẽ hết hạn sau 1 giờ.</p>
+                    <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+                </body>
+                </html>
+            ";
+            
+            $mail->send();
+        } catch (Exception $e) {
+            error_log('PHPMailer Error: ' . $mail->ErrorInfo);
+        }
+    }
 }

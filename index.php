@@ -74,6 +74,16 @@ switch ($route) {
         $controller->changePassword();
         break;
 
+    case '/forgot-password':
+        $controller = new AuthController();
+        $controller->forgotPassword();
+        break;
+
+    case '/reset-password':
+        $controller = new AuthController();
+        $controller->resetPassword();
+        break;
+
     case '/logout':
         $controller = new AuthController();
         $controller->logout();

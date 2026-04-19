@@ -15,7 +15,9 @@ verification_expiry DATETIME,
 port INT,
 display_id INT,
 status VARCHAR(20) DEFAULT 'stopped',
-session_id VARCHAR(255)
+session_id VARCHAR(255),
+reset_token VARCHAR(255),
+reset_token_expiry DATETIME
 );
 
 

@@ -110,6 +110,30 @@ class User {
         return $stmt->execute();
     }
 
+    public function createResetToken($email) {
+        $resetToken = bin2hex(random_bytes(32));
+        $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
+        
+        $stmt = $this->db->prepare("UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE email = ?");
+        $stmt->bind_param("sss", $resetToken, $expiry, $email);
+        return $stmt->execute();
+    }
+
+    public function getByResetToken($resetToken) {
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > NOW()");
+        $stmt->bind_param("s", $resetToken);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+    }
+
+    public function resetPassword($userId, $newPassword) {
+        $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+        $stmt = $this->db->prepare("UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?");
+        $stmt->bind_param("si", $hashedPassword, $userId);
+        return $stmt->execute();
+    }
+
     public function getByEmail($email) {
         $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
