@@ -66,6 +66,26 @@ class User {
         return $stmt->execute();
     }
 
+    public function updateSessionId($userId, $sessionId) {
+        $stmt = $this->db->prepare("UPDATE users SET session_id = ? WHERE id = ?");
+        $stmt->bind_param("si", $sessionId, $userId);
+        return $stmt->execute();
+    }
+
+    public function getBySessionId($sessionId) {
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE session_id = ?");
+        $stmt->bind_param("s", $sessionId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+    }
+
+    public function clearSessionId($userId) {
+        $stmt = $this->db->prepare("UPDATE users SET session_id = NULL WHERE id = ?");
+        $stmt->bind_param("i", $userId);
+        return $stmt->execute();
+    }
+
     public function getByEmail($email) {
         $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);

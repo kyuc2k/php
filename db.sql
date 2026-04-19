@@ -14,7 +14,8 @@ verification_code VARCHAR(255),
 verification_expiry DATETIME,
 port INT,
 display_id INT,
-status VARCHAR(20) DEFAULT 'stopped'
+status VARCHAR(20) DEFAULT 'stopped',
+session_id VARCHAR(255)
 );
 
 

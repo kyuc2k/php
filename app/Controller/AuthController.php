@@ -31,8 +31,26 @@ class AuthController {
                     return;
                 }
                 
+                // Generate new session ID
+                $newSessionId = bin2hex(random_bytes(32));
+                
+                // Check if user has existing session from different device
+                $oldSessionId = $user['session_id'] ?? null;
+                $currentIp = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+                
+                if ($oldSessionId && $oldSessionId !== session_id()) {
+                    // Log that user logged in from new device
+                    $this->userLog->create($user['id'], 'NEW_DEVICE_LOGIN', 'User logged in from new device, old session invalidated', $currentIp);
+                }
+                
+                // Update session ID in database
+                $this->userModel->updateSessionId($user['id'], $newSessionId);
+                
+                // Store session ID in session
+                $_SESSION['session_id'] = $newSessionId;
                 $_SESSION['user'] = $user;
-                $this->userLog->create($user['id'], 'LOGIN', 'User logged in');
+                
+                $this->userLog->create($user['id'], 'LOGIN', 'User logged in', $currentIp);
                 header('Location: /dashboard');
                 exit;
             } else {
@@ -190,8 +208,25 @@ class AuthController {
             error_log('Google OAuth: Created new user');
         }
 
+        // Generate new session ID
+        $newSessionId = bin2hex(random_bytes(32));
+        
+        // Check if user has existing session from different device
+        $oldSessionId = $user['session_id'] ?? null;
+        $currentIp = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+        
+        if ($oldSessionId && $oldSessionId !== session_id()) {
+            // Log that user logged in from new device
+            $this->userLog->create($user['id'], 'NEW_DEVICE_LOGIN', 'User logged in from new device via Google OAuth, old session invalidated', $currentIp);
+        }
+        
+        // Update session ID in database
+        $this->userModel->updateSessionId($user['id'], $newSessionId);
+        
+        // Store session ID in session
+        $_SESSION['session_id'] = $newSessionId;
         $_SESSION['user'] = $user;
-        $this->userLog->create($user['id'], 'GOOGLE_LOGIN', 'User logged in via Google OAuth');
+        $this->userLog->create($user['id'], 'GOOGLE_LOGIN', 'User logged in via Google OAuth', $currentIp);
         header('Location: /dashboard');
         exit;
     }
@@ -334,5 +369,29 @@ class AuthController {
         $userId = $_SESSION['user']['id'];
         $logs = $this->userLog->getByUserId($userId);
         require __DIR__ . '/../View/logs.php';
+    }
+
+    public function validateSession() {
+        if (!isset($_SESSION['user'])) {
+            return false;
+        }
+
+        $userId = $_SESSION['user']['id'];
+        $currentSessionId = $_SESSION['session_id'] ?? null;
+        
+        if (!$currentSessionId) {
+            return false;
+        }
+
+        // Check if session matches database
+        $user = $this->userModel->getById($userId);
+        
+        if (!$user || $user['session_id'] !== $currentSessionId) {
+            // Session invalid, user logged in from another device
+            session_destroy();
+            return false;
+        }
+
+        return true;
     }
 }

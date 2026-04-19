@@ -14,6 +14,9 @@
     <div class="login-container">
         <form method="post" id="loginForm">
             <h2>Đăng nhập VPS Game</h2>
+            <?php if (isset($_GET['error']) && $_GET['error'] == 'session_expired'): ?>
+                <div class="error">Phiên đăng nhập đã hết hạn. Tài khoản của bạn đã được đăng nhập từ thiết bị khác. Vui lòng đăng nhập lại.</div>
+            <?php endif; ?>
             <?php if (isset($error)): ?>
                 <div class="error"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
