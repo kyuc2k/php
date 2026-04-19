@@ -73,7 +73,10 @@ class RentalController {
                 $this->rentalModel->updateVpsInfo($rentalId, $vpsUrl, $vpsPassword);
                 
                 // Send email notification
-                $this->sendRentalEmail($userId, $package, $vpsUrl, $vpsPassword);
+                $emailSent = $this->sendRentalEmail($userId, $package, $vpsUrl, $vpsPassword);
+                if (!$emailSent) {
+                    error_log("Failed to send rental email to user ID: $userId");
+                }
                 
                 $this->userLog->create($userId, 'RENTAL_PURCHASE', 'Thuê gói: ' . $package['name'] . ' - ' . number_format($package['price']) . ' VNĐ');
                 header('Location: /rental?success=purchased');
@@ -111,6 +114,7 @@ class RentalController {
         $user = $userModel->getById($userId);
         
         if (!$user || !$user['email']) {
+            error_log("Email sending failed: User not found or no email for user ID: $userId");
             return false;
         }
 
@@ -145,6 +149,13 @@ class RentalController {
         $headers .= "Content-type: text/html; charset=UTF-8\r\n";
         $headers .= "From: noreply@kyuc2k.pro\r\n";
 
-        return mail($to, $subject, $message, $headers);
+        $result = mail($to, $subject, $message, $headers);
+        
+        if (!$result) {
+            error_log("Email sending failed for user: $to, subject: $subject");
+            error_log("Email content length: " . strlen($message));
+        }
+        
+        return $result;
     }
 }
