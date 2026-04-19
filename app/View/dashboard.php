@@ -12,6 +12,7 @@
         <h1>Dashboard VPS Game</h1>
         <div class="user-info">
             <a href="/logs" class="btn">Xem nhật ký hoạt động</a>
+            <a href="/change-password" class="btn">Đổi mật khẩu</a>
             <span>Xin chào, <?= htmlspecialchars($_SESSION['user']['name'] ?? 'User') ?></span>
             <a href="/logout" class="btn btn-danger">Đăng xuất</a>
         </div>

@@ -398,4 +398,77 @@ class AuthController {
         echo json_encode(['valid' => true]);
         exit;
     }
+
+    public function changePassword() {
+        if (!isset($_SESSION['user'])) {
+            header('Location: /login');
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $currentPassword = $_POST['current_password'] ?? '';
+            $newPassword = $_POST['new_password'] ?? '';
+            $confirmPassword = $_POST['confirm_password'] ?? '';
+            $userId = $_SESSION['user']['id'];
+
+            // Validate input
+            if (empty($currentPassword) || empty($newPassword)) {
+                $error = 'Vui lòng điền đầy đủ thông tin';
+                require __DIR__ . '/../View/change-password.php';
+                return;
+            }
+
+            if ($newPassword !== $confirmPassword) {
+                $error = 'Mật khẩu xác nhận không khớp';
+                require __DIR__ . '/../View/change-password.php';
+                return;
+            }
+
+            if (strlen($newPassword) < 8) {
+                $error = 'Mật khẩu phải có ít nhất 8 ký tự';
+                require __DIR__ . '/../View/change-password.php';
+                return;
+            }
+
+            // Check password complexity
+            if (!preg_match('/[A-Z]/', $newPassword)) {
+                $error = 'Mật khẩu phải có ít nhất 1 chữ hoa';
+                require __DIR__ . '/../View/change-password.php';
+                return;
+            }
+
+            if (!preg_match('/[a-z]/', $newPassword)) {
+                $error = 'Mật khẩu phải có ít nhất 1 chữ thường';
+                require __DIR__ . '/../View/change-password.php';
+                return;
+            }
+
+            if (!preg_match('/[0-9]/', $newPassword)) {
+                $error = 'Mật khẩu phải có ít nhất 1 số';
+                require __DIR__ . '/../View/change-password.php';
+                return;
+            }
+
+            if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $newPassword)) {
+                $error = 'Mật khẩu phải có ít nhất 1 ký tự đặc biệt (!@#$%^&*...)';
+                require __DIR__ . '/../View/change-password.php';
+                return;
+            }
+
+            // Change password
+            $result = $this->userModel->changePassword($userId, $currentPassword, $newPassword);
+            
+            if ($result) {
+                $this->userLog->create($userId, 'PASSWORD_CHANGED', 'User changed password');
+                $success = 'Đổi mật khẩu thành công!';
+                require __DIR__ . '/../View/change-password.php';
+                return;
+            } else {
+                $error = 'Mật khẩu hiện tại không đúng';
+                require __DIR__ . '/../View/change-password.php';
+                return;
+            }
+        }
+        require __DIR__ . '/../View/change-password.php';
+    }
 }

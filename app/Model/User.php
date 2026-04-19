@@ -86,6 +86,30 @@ class User {
         return $stmt->execute();
     }
 
+    public function changePassword($userId, $currentPassword, $newPassword) {
+        // Get current password from database
+        $stmt = $this->db->prepare("SELECT password FROM users WHERE id = ?");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        
+        if (!$user) {
+            return false;
+        }
+        
+        // Verify current password
+        if (!password_verify($currentPassword, $user['password'])) {
+            return false;
+        }
+        
+        // Update password
+        $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+        $stmt = $this->db->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $stmt->bind_param("si", $hashedPassword, $userId);
+        return $stmt->execute();
+    }
+
     public function getByEmail($email) {
         $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);

@@ -69,6 +69,11 @@ switch ($route) {
         $controller->validateSession();
         break;
 
+    case '/change-password':
+        $controller = new AuthController();
+        $controller->changePassword();
+        break;
+
     case '/logout':
         $controller = new AuthController();
         $controller->logout();
