@@ -1,16 +1,19 @@
 <?php
 
 require_once __DIR__ . '/../Model/User.php';
+require_once __DIR__ . '/../Model/UserLog.php';
 require_once __DIR__ . '/../config/google_oauth.php';
 
 class AuthController {
     private $userModel;
     private $googleOAuth;
+    private $userLog;
 
     public function __construct() {
         session_start();
         $this->userModel = new User();
         $this->googleOAuth = new GoogleOAuth();
+        $this->userLog = new UserLog();
     }
 
     public function login() {
@@ -29,6 +32,7 @@ class AuthController {
                 }
                 
                 $_SESSION['user'] = $user;
+                $this->userLog->create($user['id'], 'LOGIN', 'User logged in');
                 header('Location: /dashboard');
                 exit;
             } else {
@@ -107,6 +111,9 @@ class AuthController {
                 $user = $this->userModel->getByEmail($email);
                 $verificationCode = $user['verification_code'];
                 
+                // Log registration
+                $this->userLog->create($user['id'], 'REGISTER', 'User registered account');
+                
                 // Send verification email
                 $this->sendVerificationEmail($email, $verificationCode);
                 
@@ -184,11 +191,15 @@ class AuthController {
         }
 
         $_SESSION['user'] = $user;
+        $this->userLog->create($user['id'], 'GOOGLE_LOGIN', 'User logged in via Google OAuth');
         header('Location: /dashboard');
         exit;
     }
 
     public function logout() {
+        if (isset($_SESSION['user'])) {
+            $this->userLog->create($_SESSION['user']['id'], 'LOGOUT', 'User logged out');
+        }
         session_destroy();
         header('Location: /');
         exit;
@@ -267,6 +278,7 @@ class AuthController {
                 // Auto-login after successful verification
                 $user = $this->userModel->getByEmail($user['email']);
                 $_SESSION['user'] = $user;
+                $this->userLog->create($user['id'], 'EMAIL_VERIFIED', 'User verified email');
                 header('Location: /dashboard');
                 exit;
             } else {
@@ -311,5 +323,16 @@ class AuthController {
         // Redirect back to code entry page
         header('Location: /enter-verification-code?resent=true');
         exit;
+    }
+
+    public function logs() {
+        if (!isset($_SESSION['user'])) {
+            header('Location: /login');
+            exit;
+        }
+
+        $userId = $_SESSION['user']['id'];
+        $logs = $this->userLog->getByUserId($userId);
+        require __DIR__ . '/../View/logs.php';
     }
 }

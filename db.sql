@@ -1,6 +1,6 @@
-CREATE DATABASE nso;
+CREATE DATABASE micro_saas;
 
-USE nso;
+USE micro_saas;
 
 CREATE TABLE users (
 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -33,4 +33,14 @@ CREATE TABLE vm_sessions (
   vm_name VARCHAR(255),
   token VARCHAR(255),
   expires_at DATETIME
+);
+
+CREATE TABLE user_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  description TEXT,
+  ip_address VARCHAR(45),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

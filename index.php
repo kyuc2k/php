@@ -59,6 +59,11 @@ switch ($route) {
         $controller->resendVerification();
         break;
 
+    case '/logs':
+        $controller = new AuthController();
+        $controller->logs();
+        break;
+
     case '/logout':
         $controller = new AuthController();
         $controller->logout();
