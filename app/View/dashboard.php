@@ -24,6 +24,7 @@
                                 <th>Ngày bắt đầu</th>
                                 <th>Ngày kết thúc</th>
                                 <th>Trạng thái</th>
+                                <th>Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -35,13 +36,20 @@
                                     <td><?= htmlspecialchars($rental['start_date']) ?></td>
                                     <td><?= htmlspecialchars($rental['end_date']) ?></td>
                                     <td>
-                                        <?php 
+                                        <?php
                                         $endDate = strtotime($rental['end_date']);
                                         $now = time();
                                         if ($rental['status'] == 'active' && $endDate > $now): ?>
                                             <span style="background: #28a745; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;">Đang hoạt động</span>
                                         <?php else: ?>
                                             <span style="background: #dc3545; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;">Đã hết hạn</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($rental['vps_url'])): ?>
+                                            <a href="<?= htmlspecialchars($rental['vps_url']) ?>" target="_blank" class="btn btn-primary btn-sm">Open VPS</a>
+                                        <?php else: ?>
+                                            <span style="color: #999;">-</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>

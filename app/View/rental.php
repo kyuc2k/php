@@ -7,7 +7,7 @@
             <div class="error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
         <?php if (isset($_GET['success']) && $_GET['success'] == 'purchased'): ?>
-            <div class="success">Thuê gói thành công!</div>
+            <div class="success">Thuê gói thành công!, thông tin truy cập VPS đã gửi về mail của bạn</div>
             <?php if (isset($_GET['email_error'])): ?>
                 <div class="warning" style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; border: 1px solid #ffeeba; margin-top: 10px;">
                     ⚠️ <?= htmlspecialchars($_GET['email_error']) ?>
@@ -51,6 +51,7 @@
                                 <th>Ngày bắt đầu</th>
                                 <th>Ngày kết thúc</th>
                                 <th>Trạng thái</th>
+                                <th>Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,13 +63,20 @@
                                     <td><?= htmlspecialchars($rental['start_date']) ?></td>
                                     <td><?= htmlspecialchars($rental['end_date']) ?></td>
                                     <td>
-                                        <?php 
+                                        <?php
                                         $endDate = strtotime($rental['end_date']);
                                         $now = time();
                                         if ($rental['status'] == 'active' && $endDate > $now): ?>
                                             <span style="background: #28a745; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;">Đang hoạt động</span>
                                         <?php else: ?>
                                             <span style="background: #dc3545; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;">Đã hết hạn</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($rental['vps_url'])): ?>
+                                            <a href="<?= htmlspecialchars($rental['vps_url']) ?>" target="_blank" class="btn btn-primary btn-sm">Open VPS</a>
+                                        <?php else: ?>
+                                            <span style="color: #999;">-</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>

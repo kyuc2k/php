@@ -62,7 +62,8 @@ class RentalController {
                 // Generate VPS access info
                 $vpsPassword = $this->generatePassword();
                 $port = $this->getAvailablePort();
-                $vpsUrl = 'http://103.245.236.153:' . $port . '/vnc.html';
+                $vpsHost = getenv('VPS_HOST') ?: '';
+                $vpsUrl = $vpsHost . ':' . $port . '/vnc.html';
                 
                 // Create VPS container
                 $containerName = 'vps_' . $userId . '_' . $rentalId;
@@ -119,7 +120,6 @@ class RentalController {
         $user = $userModel->getById($userId);
         
         if (!$user || !$user['email']) {
-            error_log("Email sending failed: User not found or no email for user ID: $userId");
             return false;
         }
 
@@ -171,7 +171,6 @@ class RentalController {
             $mail->send();
             return true;
         } catch (Exception $e) {
-            error_log('PHPMailer Error: ' . $mail->ErrorInfo);
             return false;
         }
     }
