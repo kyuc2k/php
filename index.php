@@ -31,6 +31,10 @@ if (empty($route)) {
 
 switch ($route) {
     case '':
+    case '/':
+        require __DIR__ . '/app/View/home.php';
+        break;
+
     case '/login':
         $controller = new AuthController();
         $controller->login();
