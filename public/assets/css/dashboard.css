@@ -209,7 +209,7 @@ body {
 .mobile-menu-btn {
     display: none;
     position: fixed;
-    top: 20px;
+    top: 25px;
     left: 20px;
     z-index: 10001;
     cursor: pointer;
@@ -254,6 +254,7 @@ body {
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 1px solid #ddd;
+    padding-top: 30px;
 }
 
 .sidebar-header h3 {
