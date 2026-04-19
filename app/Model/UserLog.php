@@ -5,7 +5,7 @@ class UserLog {
 
     public function __construct() {
         require_once __DIR__ . '/Database.php';
-        $this->db = new Database();
+        $this->db = Database::getInstance();
     }
 
     public function create($userId, $action, $description = '', $ipAddress = null) {
