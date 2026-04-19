@@ -102,6 +102,45 @@ body {
 /* Responsive styles for mobile */
 @media (max-width: 768px) {
     body {
+        padding: 25px;
+    }
+    
+    .login-container {
+        padding: 35px 25px;
+        border-radius: 8px;
+    }
+    
+    .login-container h2 {
+        font-size: 28px;
+        margin-bottom: 25px;
+    }
+    
+    .login-container button {
+        padding: 12px;
+        font-size: 16px;
+    }
+    
+    .google-btn {
+        padding: 12px;
+        font-size: 16px;
+    }
+    
+    .google-btn img {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .password-hint {
+        font-size: 13px;
+    }
+    
+    .register-link {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
         padding: 20px;
     }
     
@@ -115,14 +154,19 @@ body {
         margin-bottom: 20px;
     }
     
+    .login-container input {
+        padding: 12px;
+        font-size: 15px;
+    }
+    
     .login-container button {
-        padding: 10px;
-        font-size: 14px;
+        padding: 12px;
+        font-size: 15px;
     }
     
     .google-btn {
-        padding: 10px;
-        font-size: 14px;
+        padding: 12px;
+        font-size: 15px;
     }
     
     .google-btn img {
@@ -130,47 +174,11 @@ body {
         height: 18px;
     }
     
-    .password-hint {
-        font-size: 12px;
-    }
-}
-
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
-    
-    .login-container {
-        padding: 25px 15px;
-        border-radius: 5px;
-    }
-    
-    .login-container h2 {
-        font-size: 20px;
-        margin-bottom: 15px;
-    }
-    
-    .login-container input {
-        padding: 10px;
-        font-size: 14px;
-    }
-    
-    .login-container button {
-        padding: 10px;
-        font-size: 14px;
-    }
-    
-    .google-btn {
-        padding: 10px;
-        font-size: 14px;
-    }
-    
-    .google-btn img {
-        width: 16px;
-        height: 16px;
-    }
-    
     .register-link {
+        font-size: 14px;
+    }
+    
+    .password-hint {
         font-size: 12px;
     }
 }

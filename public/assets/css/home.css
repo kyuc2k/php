@@ -87,11 +87,67 @@
 /* Responsive styles for mobile */
 @media (max-width: 768px) {
     .hero {
+        padding: 80px 20px;
+    }
+    
+    .hero h1 {
+        font-size: 38px;
+        margin-bottom: 20px;
+    }
+    
+    .hero p {
+        font-size: 18px;
+        margin-bottom: 25px;
+    }
+    
+    .hero .btn {
+        padding: 14px 35px;
+        font-size: 16px;
+    }
+    
+    .features {
+        margin: 60px auto;
+    }
+    
+    .features h2 {
+        font-size: 32px;
+        margin-bottom: 35px;
+    }
+    
+    .feature-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .feature-card {
+        padding: 25px;
+    }
+    
+    .feature-icon {
+        font-size: 42px;
+        margin-bottom: 18px;
+    }
+    
+    .feature-card h3 {
+        font-size: 20px;
+    }
+    
+    .cta {
+        padding: 60px 20px;
+    }
+    
+    .cta h2 {
+        font-size: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
         padding: 60px 15px;
     }
     
     .hero h1 {
-        font-size: 32px;
+        font-size: 30px;
         margin-bottom: 15px;
     }
     
@@ -101,26 +157,25 @@
     }
     
     .hero .btn {
-        padding: 12px 30px;
-        font-size: 14px;
+        padding: 12px 25px;
+        font-size: 15px;
+        display: block;
+        width: 100%;
     }
     
     .features {
-        margin: 50px auto;
+        margin: 40px auto;
+        padding: 0 15px;
     }
     
     .features h2 {
-        font-size: 28px;
-        margin-bottom: 30px;
-    }
-    
-    .feature-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
+        font-size: 26px;
+        margin-bottom: 25px;
     }
     
     .feature-card {
         padding: 20px;
+        border-radius: 8px;
     }
     
     .feature-icon {
@@ -128,73 +183,22 @@
         margin-bottom: 15px;
     }
     
+    .feature-card h3 {
+        font-size: 18px;
+    }
+    
     .cta {
-        padding: 50px 15px;
+        padding: 40px 15px;
     }
     
     .cta h2 {
-        font-size: 28px;
-    }
-}
-
-@media (max-width: 480px) {
-    .hero {
-        padding: 40px 10px;
-    }
-    
-    .hero h1 {
-        font-size: 24px;
-        margin-bottom: 10px;
-    }
-    
-    .hero p {
-        font-size: 14px;
-        margin-bottom: 15px;
-    }
-    
-    .hero .btn {
-        padding: 10px 20px;
-        font-size: 12px;
-        display: block;
-        width: 100%;
-    }
-    
-    .features {
-        margin: 30px auto;
-        padding: 0 10px;
-    }
-    
-    .features h2 {
-        font-size: 22px;
+        font-size: 26px;
         margin-bottom: 20px;
     }
     
-    .feature-card {
-        padding: 15px;
-        border-radius: 5px;
-    }
-    
-    .feature-icon {
-        font-size: 28px;
-        margin-bottom: 10px;
-    }
-    
-    .feature-card h3 {
-        font-size: 16px;
-    }
-    
-    .cta {
-        padding: 30px 10px;
-    }
-    
-    .cta h2 {
-        font-size: 22px;
-        margin-bottom: 15px;
-    }
-    
     .cta .btn {
-        padding: 10px 20px;
-        font-size: 12px;
+        padding: 12px 25px;
+        font-size: 15px;
         display: block;
         width: 100%;
     }

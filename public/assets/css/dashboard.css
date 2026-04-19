@@ -107,89 +107,100 @@ body {
 /* Responsive styles for mobile */
 @media (max-width: 768px) {
     body {
-        padding: 15px;
+        padding: 20px;
     }
     
     .dashboard-header {
         flex-direction: column;
+        padding: 20px;
+        gap: 18px;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 28px;
+    }
+    
+    .user-info {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+    
+    .user-info span {
+        font-size: 16px;
+    }
+    
+    .user-info .btn {
+        margin: 8px 0;
+        font-size: 15px;
+    }
+    
+    .container-item {
+        padding: 20px;
+        margin: 15px 0;
+    }
+    
+    .container-item h3 {
+        font-size: 20px;
+    }
+    
+    .btn-create {
+        display: block;
+        text-align: center;
+        padding: 14px 25px;
+        font-size: 16px;
+    }
+    
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+    }
+    
+    .actions a {
+        margin-right: 0;
+        margin-bottom: 8px;
+        font-size: 14px;
+        padding: 10px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
         padding: 15px;
-        gap: 15px;
+    }
+    
+    .dashboard-header {
+        padding: 18px;
+        border-radius: 8px;
     }
     
     .dashboard-header h1 {
         font-size: 24px;
     }
     
-    .user-info {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-    }
-    
-    .user-info .btn {
-        margin: 5px 0;
-    }
-    
-    .container-item {
-        padding: 15px;
-        margin: 10px 0;
-    }
-    
-    .btn-create {
-        display: block;
-        text-align: center;
-        padding: 10px 20px;
-        font-size: 14px;
-    }
-    
-    .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-    }
-    
-    .actions a {
-        margin-right: 0;
-        margin-bottom: 5px;
-        font-size: 12px;
-        padding: 6px 12px;
-    }
-}
-
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
-    
-    .dashboard-header {
-        padding: 10px;
-        border-radius: 5px;
-    }
-    
-    .dashboard-header h1 {
-        font-size: 20px;
-    }
-    
     .user-info span {
-        font-size: 14px;
+        font-size: 15px;
     }
     
     .container-item {
-        padding: 10px;
-        border-radius: 5px;
+        padding: 18px;
+        border-radius: 8px;
+        margin: 12px 0;
     }
     
     .container-item h3 {
-        font-size: 16px;
+        font-size: 18px;
     }
     
     .btn-create {
-        padding: 8px 15px;
-        font-size: 12px;
+        padding: 12px 20px;
+        font-size: 15px;
     }
     
     .actions a {
-        font-size: 11px;
-        padding: 5px 10px;
+        font-size: 13px;
+        padding: 8px 14px;
     }
 }

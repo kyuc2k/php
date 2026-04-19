@@ -254,22 +254,23 @@ input:focus {
     
     .nav-links a {
         margin: 0 10px;
+        font-size: 16px;
     }
     
     .btn {
-        padding: 8px 16px;
-        font-size: 14px;
+        padding: 10px 18px;
+        font-size: 15px;
     }
     
     .card {
-        padding: 15px;
+        padding: 20px;
     }
     
     .error,
     .success,
     .info {
-        padding: 8px;
-        font-size: 14px;
+        padding: 12px;
+        font-size: 15px;
     }
     
     form {
@@ -279,48 +280,49 @@ input:focus {
     input[type="text"],
     input[type="password"],
     input[type="email"] {
-        padding: 10px;
-        font-size: 14px;
+        padding: 12px;
+        font-size: 16px;
     }
 }
 
 @media (max-width: 480px) {
     .btn {
-        padding: 6px 12px;
-        font-size: 12px;
+        padding: 10px 15px;
+        font-size: 14px;
         display: block;
         width: 100%;
-        margin: 5px 0;
+        margin: 8px 0;
     }
     
     .card {
-        padding: 10px;
-        border-radius: 5px;
+        padding: 15px;
+        border-radius: 8px;
     }
     
     .error,
     .success,
     .info {
-        padding: 6px;
-        font-size: 12px;
+        padding: 10px;
+        font-size: 14px;
     }
     
     .header {
-        padding: 15px 0;
+        padding: 20px 0;
     }
     
     .logo {
-        font-size: 20px;
+        font-size: 22px;
     }
     
     .footer {
-        padding: 20px 10px;
+        padding: 25px 15px;
+        font-size: 14px;
     }
     
     input[type="text"],
     input[type="password"],
     input[type="email"] {
-        padding: 8px;
-        font-size: 12px;
+        padding: 12px;
+        font-size: 15px;
     }
 }
