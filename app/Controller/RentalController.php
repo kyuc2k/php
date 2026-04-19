@@ -123,44 +123,56 @@ class RentalController {
             return false;
         }
 
-        $to = $user['email'];
-        $subject = 'Thuê VPS thành công - VPS Treo Game Java';
-        
-        $message = "
-        <html>
-        <head>
-            <title>Thuê VPS thành công</title>
-        </head>
-        <body>
-            <h2>Chúc mừng bạn đã thuê gói VPS thành công!</h2>
-            <p>Thông tin thuê VPS:</p>
-            <ul>
-                <li><strong>Gói thuê:</strong> {$package['name']}</li>
-                <li><strong>Thời hạn:</strong> {$package['duration_months']} tháng</li>
-                <li><strong>Giá:</strong> " . number_format($package['price'], 0, ',', '.') . " VNĐ</li>
-            </ul>
-            <p>Thông tin truy cập VPS:</p>
-            <ul>
-                <li><strong>URL:</strong> <a href='$vpsUrl'>$vpsUrl</a></li>
-                <li><strong>Mật khẩu:</strong> $vpsPassword</li>
-            </ul>
-            <p>Vui lòng lưu giữ thông tin truy cập của bạn một cách an toàn.</p>
-            <p>Trân trọng,<br>VPS Treo Game Java</p>
-        </body>
-        </html>
-        ";
+        require_once __DIR__ . '/../../PHPMailer/src/PHPMailer.php';
+        require_once __DIR__ . '/../../PHPMailer/src/SMTP.php';
+        require_once __DIR__ . '/../../PHPMailer/src/Exception.php';
 
-        $headers = "MIME-Version: 1.0\r\n";
-        $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-        $headers .= "From: noreply@kyuc2k.pro\r\n";
-
-        $result = mail($to, $subject, $message, $headers);
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
         
-        if (!$result) {
-            error_log("Email sending failed for user: $to, subject: $subject");
-            error_log("Email content length: " . strlen($message));
+        try {
+            $mail->CharSet = 'UTF-8';
+            $mail->Encoding = 'base64';
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = getenv('GMAIL_USERNAME');
+            $mail->Password = getenv('GMAIL_APP_PASSWORD');
+            $mail->SMTPSecure = 'tls';
+            $mail->Port = 587;
+            $mail->setFrom('noreply@kyuc2k.pro', 'VPS Treo Game Java');
+            $mail->addAddress($user['email']);
+            $mail->isHTML(true);
+            $mail->Subject = 'Thuê VPS thành công - VPS Treo Game Java';
+            
+            $mail->Body = "
+            <html>
+            <head>
+                <title>Thuê VPS thành công</title>
+            </head>
+            <body>
+                <h2>Chúc mừng bạn đã thuê gói VPS thành công!</h2>
+                <p>Thông tin thuê VPS:</p>
+                <ul>
+                    <li><strong>Gói thuê:</strong> {$package['name']}</li>
+                    <li><strong>Thời hạn:</strong> {$package['duration_months']} tháng</li>
+                    <li><strong>Giá:</strong> " . number_format($package['price'], 0, ',', '.') . " VNĐ</li>
+                </ul>
+                <p>Thông tin truy cập VPS:</p>
+                <ul>
+                    <li><strong>URL:</strong> <a href='$vpsUrl'>$vpsUrl</a></li>
+                    <li><strong>Mật khẩu:</strong> $vpsPassword</li>
+                </ul>
+                <p>Vui lòng lưu giữ thông tin truy cập của bạn một cách an toàn.</p>
+                <p>Trân trọng,<br>VPS Treo Game Java</p>
+            </body>
+            </html>
+            ";
+            
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log('PHPMailer Error: ' . $mail->ErrorInfo);
+            return false;
         }
-        
-        return $result;
     }
 }
