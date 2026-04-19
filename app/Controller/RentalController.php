@@ -74,12 +74,17 @@ class RentalController {
                 
                 // Send email notification
                 $emailSent = $this->sendRentalEmail($userId, $package, $vpsUrl, $vpsPassword);
+                $emailError = '';
                 if (!$emailSent) {
-                    error_log("Failed to send rental email to user ID: $userId");
+                    $emailError = 'Gửi email thông báo thất bại. Vui lòng kiểm tra lại cấu hình email server.';
                 }
                 
                 $this->userLog->create($userId, 'RENTAL_PURCHASE', 'Thuê gói: ' . $package['name'] . ' - ' . number_format($package['price']) . ' VNĐ');
-                header('Location: /rental?success=purchased');
+                $redirectUrl = '/rental?success=purchased';
+                if ($emailError) {
+                    $redirectUrl .= '&email_error=' . urlencode($emailError);
+                }
+                header('Location: ' . $redirectUrl);
                 exit;
             } else {
                 // Refund if rental creation failed

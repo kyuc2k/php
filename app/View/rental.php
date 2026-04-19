@@ -8,6 +8,11 @@
         <?php endif; ?>
         <?php if (isset($_GET['success']) && $_GET['success'] == 'purchased'): ?>
             <div class="success">Thuê gói thành công!</div>
+            <?php if (isset($_GET['email_error'])): ?>
+                <div class="warning" style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; border: 1px solid #ffeeba; margin-top: 10px;">
+                    ⚠️ <?= htmlspecialchars($_GET['email_error']) ?>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
         
         <div class="packages-section">
