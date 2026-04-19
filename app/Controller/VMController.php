@@ -22,13 +22,13 @@ class VMController {
         $port = rand(6001, 7000);
         $name = "vm_{$userId}_{$time}";
 
-        $basePath = "/var/www/php/vms/user_" . $userId;
+        $basePath = "/var/www/php/vms/" . $userId;
 
         if (!is_dir($basePath)) {
             mkdir($basePath, 0755, true);
         }
 
-        $userPath = "user_" . $userId;
+        $userPath = $userId;
         $vnc_password = '112169';
 
         $output = $this->instanceModel->createContainer($name, $port, $userPath, $vnc_password);

@@ -59,7 +59,7 @@ class FileController {
             }
 
             // Create upload directory if not exists
-            $uploadDir = __DIR__ . '/../../vms/user_' . $userId . '/';
+            $uploadDir = __DIR__ . '/../../vms/' . $userId . '/';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
