@@ -53,8 +53,33 @@ class AuthController {
                 return;
             }
 
-            if (strlen($password) < 6) {
-                $error = 'Mật khẩu phải có ít nhất 6 ký tự';
+            if (strlen($password) < 8) {
+                $error = 'Mật khẩu phải có ít nhất 8 ký tự';
+                require __DIR__ . '/../View/register.php';
+                return;
+            }
+
+            // Check password complexity
+            if (!preg_match('/[A-Z]/', $password)) {
+                $error = 'Mật khẩu phải có ít nhất 1 chữ hoa';
+                require __DIR__ . '/../View/register.php';
+                return;
+            }
+
+            if (!preg_match('/[a-z]/', $password)) {
+                $error = 'Mật khẩu phải có ít nhất 1 chữ thường';
+                require __DIR__ . '/../View/register.php';
+                return;
+            }
+
+            if (!preg_match('/[0-9]/', $password)) {
+                $error = 'Mật khẩu phải có ít nhất 1 số';
+                require __DIR__ . '/../View/register.php';
+                return;
+            }
+
+            if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
+                $error = 'Mật khẩu phải có ít nhất 1 ký tự đặc biệt (!@#$%^&*...)';
                 require __DIR__ . '/../View/register.php';
                 return;
             }
