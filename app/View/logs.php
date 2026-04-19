@@ -80,6 +80,34 @@
             font-weight: bold;
             color: #007bff;
         }
+        
+        /* Responsive table styles */
+        @media (max-width: 768px) {
+            .logs-container {
+                padding: 15px;
+                overflow-x: auto;
+            }
+            .logs-table {
+                min-width: 600px;
+            }
+            .logs-table th,
+            .logs-table td {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logs-container {
+                padding: 10px;
+                overflow-x: auto;
+            }
+            .logs-table th,
+            .logs-table td {
+                padding: 8px;
+                font-size: 12px;
+            }
+        }
     </style>
 </body>
 </html>

@@ -8,6 +8,30 @@
     <link rel="stylesheet" href="/public/assets/css/dashboard.css">
 </head>
 <body>
+    <div class="mobile-menu-btn" onclick="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h3>Menu</h3>
+                <button class="close-sidebar" onclick="toggleSidebar()">×</button>
+            </div>
+            <div class="sidebar-user">
+                <span>Xin chào, <?= htmlspecialchars($_SESSION['user']['name'] ?? 'User') ?></span>
+            </div>
+            <div class="sidebar-menu">
+                <a href="/dashboard" onclick="toggleSidebar()">Dashboard</a>
+                <a href="/logs" onclick="toggleSidebar()">Xem nhật ký hoạt động</a>
+                <a href="/change-password" onclick="toggleSidebar()">Đổi mật khẩu</a>
+                <a href="/logout" onclick="toggleSidebar()" class="logout-link">Đăng xuất</a>
+            </div>
+        </div>
+    </div>
+    
     <div class="dashboard-header">
         <h1>Dashboard VPS Game</h1>
         <div class="user-info">
@@ -52,6 +76,11 @@
     </div>
     
     <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+        
         function checkSession() {
             fetch('/validate-session')
                 .then(response => response.json())
