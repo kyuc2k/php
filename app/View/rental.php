@@ -18,47 +18,6 @@
     </div>
     
     <div class="dashboard-content">
-        <?php if (!empty($rentals)): ?>
-            <div class="active-rental">
-                <h2>Gói thuê của bạn (<?= count($rentals) ?>)</h2>
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Tên gói</th>
-                                <th>Thời hạn</th>
-                                <th>Giá</th>
-                                <th>Ngày bắt đầu</th>
-                                <th>Ngày kết thúc</th>
-                                <th>Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($rentals as $rental): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($rental['package_name']) ?></td>
-                                    <td><?= $rental['duration_months'] ?> tháng</td>
-                                    <td><?= number_format($rental['price'], 0, ',', '.') ?> VNĐ</td>
-                                    <td><?= htmlspecialchars($rental['start_date']) ?></td>
-                                    <td><?= htmlspecialchars($rental['end_date']) ?></td>
-                                    <td>
-                                        <?php 
-                                        $endDate = strtotime($rental['end_date']);
-                                        $now = time();
-                                        if ($rental['status'] == 'active' && $endDate > $now): ?>
-                                            <span class="status-active">Đang hoạt động</span>
-                                        <?php else: ?>
-                                            <span class="status-expired">Đã hết hạn</span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        <?php endif; ?>
-        
         <?php if (isset($error)): ?>
             <div class="error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
@@ -88,6 +47,47 @@
                 <?php endforeach; ?>
             </div>
         </div>
+        
+        <?php if (!empty($rentals)): ?>
+            <div class="active-rental">
+                <h2>Gói thuê của bạn (<?= count($rentals) ?>)</h2>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tên gói</th>
+                                <th>Thời hạn</th>
+                                <th>Giá</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Ngày kết thúc</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($rentals as $rental): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($rental['package_name']) ?></td>
+                                    <td><?= $rental['duration_months'] ?> tháng</td>
+                                    <td><?= number_format($rental['price'], 0, ',', '.') ?> VNĐ</td>
+                                    <td><?= htmlspecialchars($rental['start_date']) ?></td>
+                                    <td><?= htmlspecialchars($rental['end_date']) ?></td>
+                                    <td>
+                                        <?php 
+                                        $endDate = strtotime($rental['end_date']);
+                                        $now = time();
+                                        if ($rental['status'] == 'active' && $endDate > $now): ?>
+                                            <span style="background: #28a745; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;">Đang hoạt động</span>
+                                        <?php else: ?>
+                                            <span style="background: #dc3545; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;">Đã hết hạn</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
     
     <!-- Rental Confirmation Modal -->
