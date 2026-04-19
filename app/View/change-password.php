@@ -21,11 +21,11 @@
                 <div class="success"><?= htmlspecialchars($success) ?></div>
             <?php endif; ?>
             <input type="password" name="current_password" placeholder="Mật khẩu hiện tại" required autocomplete="current-password">
-            <input type="password" name="new_password" placeholder="Mật khẩu mới" required autocomplete="new-password">
+            <input type="password" name="new_password" placeholder="Mật khẩu mới" required autocomplete="new-password" value="<?= htmlspecialchars($_POST['new_password'] ?? '') ?>">
             <div class="password-hint">
                 Password phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
             </div>
-            <input type="password" name="confirm_password" placeholder="Xác nhận mật khẩu mới" required autocomplete="new-password">
+            <input type="password" name="confirm_password" placeholder="Xác nhận mật khẩu mới" required autocomplete="new-password" value="<?= htmlspecialchars($_POST['confirm_password'] ?? '') ?>">
             <button type="submit">Đổi mật khẩu</button>
         </form>
         <div class="register-link">

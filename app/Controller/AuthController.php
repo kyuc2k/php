@@ -460,9 +460,8 @@ class AuthController {
             
             if ($result) {
                 $this->userLog->create($userId, 'PASSWORD_CHANGED', 'User changed password');
-                $success = 'Đổi mật khẩu thành công!';
-                require __DIR__ . '/../View/change-password.php';
-                return;
+                header('Location: /dashboard?success=password_changed');
+                exit;
             } else {
                 $error = 'Mật khẩu hiện tại không đúng';
                 require __DIR__ . '/../View/change-password.php';

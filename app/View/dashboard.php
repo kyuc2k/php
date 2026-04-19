@@ -18,6 +18,12 @@
         </div>
     </div>
     
+    <?php if (isset($_GET['success']) && $_GET['success'] == 'password_changed'): ?>
+        <div class="success" style="margin-bottom: 20px; padding: 15px; background: #d4edda; color: #28a745; border-radius: 5px; border: 1px solid #c3e6cb;">
+            Đổi mật khẩu thành công!
+        </div>
+    <?php endif; ?>
+    
     <a href="/vm/create" class="btn-create">Tạo VPS Game mới</a>
     
     <div class="container-list">
