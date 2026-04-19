@@ -19,6 +19,8 @@ class GoogleOAuth {
             'scope' => 'openid profile email',
             'access_type' => 'offline'
         ];
+        error_log('Google OAuth: Redirect URI = ' . $this->redirectUri);
+        error_log('Google OAuth: Auth URL params = ' . http_build_query($params));
         return 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params);
     }
 
