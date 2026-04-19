@@ -63,10 +63,7 @@
                                 <p>Upload lúc: <?= htmlspecialchars($file['uploaded_at']) ?></p>
                             </div>
                             <div class="file-actions">
-                                <form method="post" action="/delete-file" onsubmit="return confirm('Bạn có chắc muốn xóa file này?');">
-                                    <input type="hidden" name="file_id" value="<?= $file['id'] ?>">
-                                    <button type="submit" class="btn btn-danger">Xóa</button>
-                                </form>
+                                <button type="button" class="btn btn-danger" onclick="showDeleteModal(<?= $file['id'] ?>, '<?= htmlspecialchars($file['original_name']) ?>')">Xóa</button>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -74,6 +71,64 @@
             <?php endif; ?>
         </div>
     </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Xác nhận xóa file</h3>
+                <button class="modal-close" onclick="hideDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc muốn xóa file <strong id="deleteFileName"></strong> không?</p>
+                <p>Hành động này không thể hoàn tác.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="hideDeleteModal()">Hủy</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Xóa</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let deleteFileId = null;
+        
+        function showDeleteModal(fileId, fileName) {
+            deleteFileId = fileId;
+            document.getElementById('deleteFileName').textContent = fileName;
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+        
+        function hideDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            deleteFileId = null;
+        }
+        
+        function confirmDelete() {
+            if (deleteFileId) {
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = '/delete-file';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'file_id';
+                input.value = deleteFileId;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target == modal) {
+                hideDeleteModal();
+            }
+        }
+    </script>
     
     <style>
         .upload-section, .files-section {
@@ -197,6 +252,109 @@
             }
             
             .file-actions button {
+                width: 100%;
+            }
+        }
+        
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #e74c3c;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            line-height: 1;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-body p {
+            margin: 10px 0;
+            color: #333;
+        }
+        
+        .modal-body strong {
+            color: #e74c3c;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-footer .btn {
+            padding: 10px 20px;
+            min-width: 100px;
+        }
+        
+        @media (max-width: 480px) {
+            .modal-content {
+                width: 95%;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            .modal-footer .btn {
                 width: 100%;
             }
         }
