@@ -8,8 +8,11 @@
     <link rel="stylesheet" href="/public/assets/css/login.css">
 </head>
 <body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
     <div class="login-container">
-        <form method="post">
+        <form method="post" id="loginForm">
             <h2>Đăng nhập VPS Game</h2>
             <?php if (isset($error)): ?>
                 <div class="error"><?= htmlspecialchars($error) ?></div>
@@ -23,7 +26,7 @@
             <span>hoặc</span>
         </div>
         
-        <a href="/google-login" class="google-btn">
+        <a href="/google-login" class="google-btn" onclick="showLoading()">
             <img src="https://www.google.com/favicon.ico" alt="Google">
             Đăng nhập với Google
         </a>
@@ -32,5 +35,13 @@
             Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
         </div>
     </div>
+    <script>
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        document.getElementById('loginForm').addEventListener('submit', function() {
+            showLoading();
+        });
+    </script>
 </body>
 </html>

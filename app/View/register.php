@@ -8,8 +8,11 @@
     <link rel="stylesheet" href="/public/assets/css/register.css">
 </head>
 <body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
     <div class="register-container">
-        <form method="post">
+        <form method="post" id="registerForm">
             <h2>Đăng ký tài khoản</h2>
             <?php if (isset($error)): ?>
                 <div class="error"><?= htmlspecialchars($error) ?></div>
@@ -31,7 +34,7 @@
             <span>hoặc</span>
         </div>
         
-        <a href="/google-login" class="google-btn">
+        <a href="/google-login" class="google-btn" onclick="showLoading()">
             <img src="https://www.google.com/favicon.ico" alt="Google">
             Đăng ký với Google
         </a>
@@ -40,5 +43,13 @@
             Đã có tài khoản? <a href="/login">Đăng nhập ngay</a>
         </div>
     </div>
+    <script>
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        document.getElementById('registerForm').addEventListener('submit', function() {
+            showLoading();
+        });
+    </script>
 </body>
 </html>
