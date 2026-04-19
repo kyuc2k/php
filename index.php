@@ -34,6 +34,11 @@ if (empty($route)) {
 switch ($route) {
     case '':
     case '/':
+        session_start();
+        if (isset($_SESSION['user'])) {
+            header('Location: /dashboard');
+            exit;
+        }
         require __DIR__ . '/app/View/home.php';
         break;
 
