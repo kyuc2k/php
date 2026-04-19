@@ -91,22 +91,6 @@
                 </div>
             <?php endif; ?>
         </div>
-        
-        <div class="container-list">
-            <?php if (!empty($instances)): ?>
-                <?php foreach ($instances as $row): ?>
-                    <div class="container-item">
-                        <h3>VPS Game: <?= htmlspecialchars($row['container_name']) ?></h3>
-                        <p>Trạng thái: <span class="status <?= $row['status'] ?>"><?= htmlspecialchars($row['status']) ?></span></p>
-                        <div class="actions">
-                            <a href="/vm/start?id=<?= $row['id'] ?>" class="btn-start">Bắt đầu</a>
-                            <a href="/vm/stop?id=<?= $row['id'] ?>" class="btn-stop">Dừng</a>
-                            <a href="http://103.245.236.153:<?= $row['port'] ?>/vnc.html" target="_blank" class="btn-open">Mở VPS</a>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
     </div>
 
     <div id="session-alert" style="display: none; position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 20px; border-radius: 5px; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">

@@ -33,6 +33,8 @@ class VMController {
 
         $output = $this->instanceModel->createContainer($name, $port, $userPath, $vnc_password);
 
+        var_dump($output);
+
         if ($output && !str_contains($output, 'error') && !str_contains($output, 'Error')) {
             $this->instanceModel->create($userId, $name, $port, 'running');
 
