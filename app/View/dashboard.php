@@ -9,8 +9,6 @@
         
         <h1>Dashboard VPS Game</h1>
         
-        <a href="/vm/create" class="btn-create">Tạo VPS Game mới</a>
-        
         <div class="rental-section">
             <h2>Gói thuê VPS (<?= count($rentals) ?>)</h2>
             <?php if (empty($rentals)): ?>
@@ -89,7 +87,7 @@
         <div class="container-list">
             <?php if (empty($instances)): ?>
                 <div class="card text-center">
-                    <p>Chưa có VPS game nào. <a href="/vm/create" class="btn btn-primary">Tạo VPS game đầu tiên của bạn</a></p>
+                    <p>Chưa có VPS game nào. <a href="/rental" class="btn btn-primary">Thuê VPS game đầu tiên của bạn</a></p>
                 </div>
             <?php else: ?>
                 <?php foreach ($instances as $row): ?>
