@@ -127,6 +127,23 @@
             border: 2px dashed #ddd;
             border-radius: 5px;
             background: #fafafa;
+            cursor: pointer;
+        }
+        
+        .form-group input[type="file"]::file-selector-button {
+            padding: 10px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 10px;
+            transition: background 0.3s;
+        }
+        
+        .form-group input[type="file"]::file-selector-button:hover {
+            background: #c0392b;
         }
         
         .files-list {

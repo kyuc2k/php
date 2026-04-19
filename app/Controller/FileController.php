@@ -64,8 +64,11 @@ class FileController {
                 mkdir($uploadDir, 0777, true);
             }
 
-            // Generate unique filename
-            $filename = uniqid() . '_' . time() . '.jar';
+            // Generate unique filename using original name with timestamp
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $basename = pathinfo($file['name'], PATHINFO_FILENAME);
+            $sanitizedBasename = preg_replace('/[^a-zA-Z0-9_-]/', '_', $basename);
+            $filename = $sanitizedBasename . '_' . time() . '.' . $extension;
             $filePath = $uploadDir . $filename;
 
             // Move uploaded file
