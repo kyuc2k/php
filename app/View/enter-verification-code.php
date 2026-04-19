@@ -11,7 +11,11 @@
     <div class="login-container">
         <form method="post">
             <h2>Nhập mã xác nhận</h2>
-            <div class="info">Mã xác nhận đã được gửi về email của bạn. Vui lòng kiểm tra email.</div>
+            <?php if (isset($_GET['resent']) && $_GET['resent'] == 'true'): ?>
+                <div class="success">Đã gửi lại mã xác nhận. Vui lòng kiểm tra email.</div>
+            <?php else: ?>
+                <div class="info">Mã xác nhận đã được gửi về email của bạn. Vui lòng kiểm tra email.</div>
+            <?php endif; ?>
             <?php if (isset($error)): ?>
                 <div class="error"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>

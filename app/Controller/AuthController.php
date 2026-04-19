@@ -110,6 +110,9 @@ class AuthController {
                 // Send verification email
                 $this->sendVerificationEmail($email, $verificationCode);
                 
+                // Store email in session for resend
+                $_SESSION['verify_email'] = $email;
+                
                 // Redirect to code entry page
                 header('Location: /enter-verification-code');
                 exit;
@@ -258,6 +261,9 @@ class AuthController {
             $result = $this->userModel->verifyEmail($code);
             
             if ($result) {
+                // Clear session email
+                unset($_SESSION['verify_email']);
+                
                 // Auto-login after successful verification
                 $user = $this->userModel->getByEmail($user['email']);
                 $_SESSION['user'] = $user;
@@ -273,40 +279,37 @@ class AuthController {
     }
 
     public function resendVerification() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = $_POST['email'] ?? '';
-            
-            if (empty($email)) {
-                $error = 'Vui lòng nhập email';
-                require __DIR__ . '/../View/resend-verification.php';
-                return;
-            }
-            
-            $user = $this->userModel->getByEmail($email);
-            
-            if (!$user) {
-                $error = 'Email không tồn tại';
-                require __DIR__ . '/../View/resend-verification.php';
-                return;
-            }
-            
-            if ($user['email_verified'] == 1) {
-                $success = 'Email đã được xác nhận rồi. Bạn có thể đăng nhập ngay.';
-                require __DIR__ . '/../View/resend-verification.php';
-                return;
-            }
-            
-            // Regenerate verification code
-            $this->userModel->regenerateVerificationCode($email);
-            $user = $this->userModel->getByEmail($email);
-            
-            // Send new verification email
-            $this->sendVerificationEmail($email, $user['verification_code']);
-            
-            $success = 'Đã gửi lại mã xác nhận. Vui lòng kiểm tra email.';
-            require __DIR__ . '/../View/resend-verification.php';
-            return;
+        $email = $_SESSION['verify_email'] ?? '';
+        
+        if (empty($email)) {
+            $error = 'Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại.';
+            header('Location: /register');
+            exit;
         }
-        require __DIR__ . '/../View/resend-verification.php';
+        
+        $user = $this->userModel->getByEmail($email);
+        
+        if (!$user) {
+            $error = 'Email không tồn tại';
+            header('Location: /register');
+            exit;
+        }
+        
+        if ($user['email_verified'] == 1) {
+            $success = 'Email đã được xác nhận rồi. Bạn có thể đăng nhập ngay.';
+            header('Location: /login');
+            exit;
+        }
+        
+        // Regenerate verification code
+        $this->userModel->regenerateVerificationCode($email);
+        $user = $this->userModel->getByEmail($email);
+        
+        // Send new verification email
+        $this->sendVerificationEmail($email, $user['verification_code']);
+        
+        // Redirect back to code entry page
+        header('Location: /enter-verification-code?resent=true');
+        exit;
     }
 }
