@@ -17,7 +17,8 @@ display_id INT,
 status VARCHAR(20) DEFAULT 'stopped',
 session_id VARCHAR(255),
 reset_token VARCHAR(255),
-reset_token_expiry DATETIME
+reset_token_expiry DATETIME,
+balance DECIMAL(10, 2) DEFAULT 0.00
 );
 
 
@@ -56,5 +57,21 @@ CREATE TABLE uploaded_files (
   file_size INT NOT NULL,
   file_path VARCHAR(255) NOT NULL,
   uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE deposits (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pending',
+  vnp_txn_ref VARCHAR(255),
+  vnp_response_code VARCHAR(10),
+  vnp_transaction_no VARCHAR(255),
+  vnp_bank_code VARCHAR(50),
+  vnp_pay_date VARCHAR(20),
+  vnp_card_type VARCHAR(50),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

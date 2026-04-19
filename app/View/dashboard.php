@@ -28,6 +28,7 @@
                 <a href="/logs" onclick="toggleSidebar()">Xem nhật ký hoạt động</a>
                 <a href="/change-password" onclick="toggleSidebar()">Đổi mật khẩu</a>
                 <a href="/upload-file" onclick="toggleSidebar()">Upload File JAR</a>
+                <a href="/deposit" onclick="toggleSidebar()">Nạp tiền</a>
                 <a href="/logout" onclick="toggleSidebar()" class="logout-link">Đăng xuất</a>
             </div>
         </div>
@@ -39,6 +40,7 @@
             <a href="/logs" class="btn">Xem nhật ký hoạt động</a>
             <a href="/change-password" class="btn">Đổi mật khẩu</a>
             <a href="/upload-file" class="btn">Upload File JAR</a>
+            <a href="/deposit" class="btn btn-success">Nạp tiền</a>
             <span>Xin chào, <?= htmlspecialchars($_SESSION['user']['name'] ?? 'User') ?></span>
             <a href="/logout" class="btn btn-danger">Đăng xuất</a>
         </div>

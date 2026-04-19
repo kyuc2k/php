@@ -122,12 +122,27 @@ class User {
         return $stmt->execute();
     }
 
-    public function getByResetToken($resetToken) {
+    public function getByResetToken($token) {
         $stmt = $this->db->prepare("SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > NOW()");
-        $stmt->bind_param("s", $resetToken);
+        $stmt->bind_param("s", $token);
         $stmt->execute();
         $result = $stmt->get_result();
         return $result->fetch_assoc();
+    }
+
+    public function getBalance($userId) {
+        $stmt = $this->db->prepare("SELECT balance FROM users WHERE id = ?");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return $row ? $row['balance'] : 0;
+    }
+
+    public function addBalance($userId, $amount) {
+        $stmt = $this->db->prepare("UPDATE users SET balance = balance + ? WHERE id = ?");
+        $stmt->bind_param("di", $amount, $userId);
+        return $stmt->execute();
     }
 
     public function resetPassword($userId, $newPassword) {

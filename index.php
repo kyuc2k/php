@@ -8,6 +8,7 @@ require_once __DIR__ . '/app/Controller/AuthController.php';
 require_once __DIR__ . '/app/Controller/DashboardController.php';
 require_once __DIR__ . '/app/Controller/VMController.php';
 require_once __DIR__ . '/app/Controller/FileController.php';
+require_once __DIR__ . '/app/Controller/DepositController.php';
 
 $requestUri = $_SERVER['REQUEST_URI'];
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -93,6 +94,21 @@ switch ($route) {
     case '/delete-file':
         $controller = new FileController();
         $controller->delete();
+        break;
+
+    case '/deposit':
+        $controller = new DepositController();
+        $controller->deposit();
+        break;
+
+    case '/vnpay-callback':
+        $controller = new DepositController();
+        $controller->vnpayCallback();
+        break;
+
+    case '/vnpay_return':
+        $controller = new DepositController();
+        $controller->vnpayCallback();
         break;
 
     case '/logout':
