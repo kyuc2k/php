@@ -60,7 +60,7 @@ class Instance {
 
     public function createContainer($name, $port, $userPath, $vncPassword = '112169') {
         $cmd = sprintf(
-            "docker run -d --name %s -p %s:6001 -v /var/www/php/vms/%s:/app/game:ro -e VNC_PASSWORD=%s --memory=50m --cpus=1 micro-saas 2>&1",
+            "docker run -d --name %s -p %s:6001 -v /var/www/php/vms/%s:/app/game:ro -e VNC_PASSWORD=%s --memory=512m --cpus=1 micro-saas 2>&1",
             escapeshellarg($name),
             escapeshellarg($port),
             escapeshellarg($userPath),
