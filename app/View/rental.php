@@ -40,7 +40,7 @@
                             <?php if ($balance >= $package['price']): ?>
                                 <button type="button" class="btn btn-primary btn-block" onclick="showRentalModal(<?= $package['id'] ?>, '<?= htmlspecialchars($package['name']) ?>', <?= number_format($package['price'], 0, ',', '.') ?>)">Thuê ngay</button>
                             <?php else: ?>
-                                <button type="button" class="btn btn-primary btn-block" disabled>Không đủ tiền</button>
+                                <a href="/deposit" class="btn btn-primary btn-block" style="text-align: center; display: block; text-decoration: none;">Không đủ tiền - Nạp ngay</a>
                             <?php endif; ?>
                         </div>
                     </div>
