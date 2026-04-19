@@ -108,3 +108,85 @@ body {
 .login-link a:hover {
     text-decoration: underline;
 }
+
+/* Responsive styles for mobile */
+@media (max-width: 768px) {
+    body {
+        padding: 20px;
+    }
+    
+    .register-container {
+        padding: 30px 20px;
+        border-radius: 8px;
+    }
+    
+    .register-container h2 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    
+    .register-container button {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .google-btn {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .google-btn img {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .password-hint {
+        font-size: 11px;
+        padding: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .register-container {
+        padding: 25px 15px;
+        border-radius: 5px;
+    }
+    
+    .register-container h2 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .register-container input {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .register-container button {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .google-btn {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .google-btn img {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .login-link {
+        font-size: 12px;
+    }
+    
+    .password-hint {
+        font-size: 10px;
+        padding: 6px;
+    }
+}

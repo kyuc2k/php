@@ -103,3 +103,93 @@ body {
 .btn-open:hover {
     background: #0056b3;
 }
+
+/* Responsive styles for mobile */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        padding: 15px;
+        gap: 15px;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 24px;
+    }
+    
+    .user-info {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .user-info .btn {
+        margin: 5px 0;
+    }
+    
+    .container-item {
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .btn-create {
+        display: block;
+        text-align: center;
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+    
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .actions a {
+        margin-right: 0;
+        margin-bottom: 5px;
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .dashboard-header {
+        padding: 10px;
+        border-radius: 5px;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 20px;
+    }
+    
+    .user-info span {
+        font-size: 14px;
+    }
+    
+    .container-item {
+        padding: 10px;
+        border-radius: 5px;
+    }
+    
+    .container-item h3 {
+        font-size: 16px;
+    }
+    
+    .btn-create {
+        padding: 8px 15px;
+        font-size: 12px;
+    }
+    
+    .actions a {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+}

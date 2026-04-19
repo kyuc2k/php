@@ -255,4 +255,72 @@ input:focus {
     .nav-links a {
         margin: 0 10px;
     }
+    
+    .btn {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+    
+    .card {
+        padding: 15px;
+    }
+    
+    .error,
+    .success,
+    .info {
+        padding: 8px;
+        font-size: 14px;
+    }
+    
+    form {
+        max-width: 100%;
+    }
+    
+    input[type="text"],
+    input[type="password"],
+    input[type="email"] {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn {
+        padding: 6px 12px;
+        font-size: 12px;
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    .card {
+        padding: 10px;
+        border-radius: 5px;
+    }
+    
+    .error,
+    .success,
+    .info {
+        padding: 6px;
+        font-size: 12px;
+    }
+    
+    .header {
+        padding: 15px 0;
+    }
+    
+    .logo {
+        font-size: 20px;
+    }
+    
+    .footer {
+        padding: 20px 10px;
+    }
+    
+    input[type="text"],
+    input[type="password"],
+    input[type="email"] {
+        padding: 8px;
+        font-size: 12px;
+    }
 }
