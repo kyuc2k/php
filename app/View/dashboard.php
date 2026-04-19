@@ -10,7 +10,10 @@
 <body>
     <div class="dashboard-header">
         <h1>Dashboard VPS Game</h1>
-        <a href="/logout" class="btn btn-danger">Đăng xuất</a>
+        <div class="user-info">
+            <span>Xin chào, <?= htmlspecialchars($_SESSION['user']['name'] ?? 'User') ?></span>
+            <a href="/logout" class="btn btn-danger">Đăng xuất</a>
+        </div>
     </div>
     
     <a href="/vm/create" class="btn-create">Tạo VPS Game mới</a>

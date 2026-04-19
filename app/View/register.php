@@ -17,8 +17,8 @@
             <?php if (isset($success)): ?>
                 <div class="success"><?= htmlspecialchars($success) ?></div>
             <?php endif; ?>
-            <input type="text" name="username" placeholder="Username" required autocomplete="username">
-            <input type="email" name="email" placeholder="Email (Gmail)" required autocomplete="email">
+            <input type="text" name="name" placeholder="Tên hiển thị" required autocomplete="name">
+            <input type="email" name="email" placeholder="Email" required autocomplete="email">
             <input type="password" name="password" placeholder="Password" required autocomplete="new-password">
             <div class="password-hint">
                 Password phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt

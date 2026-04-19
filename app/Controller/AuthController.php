@@ -15,17 +15,17 @@ class AuthController {
 
     public function login() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = $_POST['username'] ?? '';
+            $email = $_POST['email'] ?? '';
             $password = $_POST['password'] ?? '';
 
-            $user = $this->userModel->authenticate($username, $password);
+            $user = $this->userModel->authenticate($email, $password);
 
             if ($user) {
                 $_SESSION['user'] = $user;
                 header('Location: /dashboard');
                 exit;
             } else {
-                $error = 'Invalid username or password';
+                $error = 'Invalid email or password';
                 require __DIR__ . '/../View/login.php';
                 return;
             }
@@ -35,13 +35,13 @@ class AuthController {
 
     public function register() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = $_POST['username'] ?? '';
+            $name = $_POST['name'] ?? '';
             $email = $_POST['email'] ?? '';
             $password = $_POST['password'] ?? '';
             $confirmPassword = $_POST['confirm_password'] ?? '';
 
             // Validate input
-            if (empty($username) || empty($email) || empty($password)) {
+            if (empty($name) || empty($email) || empty($password)) {
                 $error = 'Vui lòng điền đầy đủ thông tin';
                 require __DIR__ . '/../View/register.php';
                 return;
@@ -84,14 +84,7 @@ class AuthController {
                 return;
             }
 
-            // Check if username or email already exists
-            $existingUser = $this->userModel->getByUsername($username);
-            if ($existingUser) {
-                $error = 'Username đã tồn tại';
-                require __DIR__ . '/../View/register.php';
-                return;
-            }
-
+            // Check if email already exists
             $existingEmail = $this->userModel->getByEmail($email);
             if ($existingEmail) {
                 $error = 'Email đã được sử dụng';
@@ -99,8 +92,8 @@ class AuthController {
                 return;
             }
 
-            // Create user
-            $result = $this->userModel->createWithEmail($username, $email, $password);
+            // Create user with name and email
+            $result = $this->userModel->createWithEmail($name, $email, $password);
             
             if ($result) {
                 $success = 'Đăng ký thành công! Vui lòng đăng nhập.';
