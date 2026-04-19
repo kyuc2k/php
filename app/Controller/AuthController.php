@@ -199,6 +199,8 @@ class AuthController {
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
         
         try {
+            $mail->CharSet = 'UTF-8';
+            $mail->Encoding = 'base64';
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
