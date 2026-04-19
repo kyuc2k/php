@@ -204,7 +204,7 @@ class AuthController {
             $mail->SMTPAuth = true;
             $mail->Username = getenv('GMAIL_USERNAME');
             $mail->Password = getenv('GMAIL_APP_PASSWORD');
-            $mail->SMTPSecure = PHPMailer\PHPMailer\ENCRYPTION_STARTTLS;
+            $mail->SMTPSecure = 'tls';
             $mail->Port = 587;
             
             $mail->setFrom(getenv('GMAIL_USERNAME'), 'VPS Treo Game Java');
