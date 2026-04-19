@@ -43,6 +43,7 @@ body {
     list-style: none;
     gap: 20px;
     align-items: center;
+    flex-wrap: nowrap;
 }
 
 .main-nav a {
