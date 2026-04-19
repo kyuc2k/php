@@ -391,6 +391,7 @@ class AuthController {
         $totalLogs = $this->userLog->countByUserId($userId, $action);
         $totalPages = ceil($totalLogs / $limit);
         $actions = $this->userLog->getDistinctActions($userId);
+        $balance = $this->userModel->getBalance($userId);
 
         require __DIR__ . '/../View/logs.php';
     }

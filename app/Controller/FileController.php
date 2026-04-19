@@ -2,15 +2,18 @@
 
 require_once __DIR__ . '/../Model/UploadedFile.php';
 require_once __DIR__ . '/../Model/UserLog.php';
+require_once __DIR__ . '/../Model/User.php';
 
 class FileController {
     private $uploadedFileModel;
     private $userLog;
+    private $userModel;
 
     public function __construct() {
         session_start();
         $this->uploadedFileModel = new UploadedFile();
         $this->userLog = new UserLog();
+        $this->userModel = new User();
     }
 
     public function upload() {
@@ -28,6 +31,7 @@ class FileController {
             if ($fileCount >= 3) {
                 $error = 'Bạn chỉ được upload tối đa 3 file.';
                 $files = $this->uploadedFileModel->getByUserId($userId);
+                $balance = $this->userModel->getBalance($userId);
                 require __DIR__ . '/../View/upload-file.php';
                 return;
             }
@@ -37,6 +41,7 @@ class FileController {
             if ($fileExt !== 'jar') {
                 $error = 'Chỉ cho phép upload file .jar';
                 $files = $this->uploadedFileModel->getByUserId($userId);
+                $balance = $this->userModel->getBalance($userId);
                 require __DIR__ . '/../View/upload-file.php';
                 return;
             }
@@ -46,6 +51,7 @@ class FileController {
             if ($file['size'] > $maxSize) {
                 $error = 'File không được vượt quá 10MB';
                 $files = $this->uploadedFileModel->getByUserId($userId);
+                $balance = $this->userModel->getBalance($userId);
                 require __DIR__ . '/../View/upload-file.php';
                 return;
             }
@@ -54,6 +60,7 @@ class FileController {
             if ($file['error'] !== UPLOAD_ERR_OK) {
                 $error = 'Có lỗi xảy ra khi upload file';
                 $files = $this->uploadedFileModel->getByUserId($userId);
+                $balance = $this->userModel->getBalance($userId);
                 require __DIR__ . '/../View/upload-file.php';
                 return;
             }
@@ -97,6 +104,7 @@ class FileController {
         }
 
         $files = $this->uploadedFileModel->getByUserId($_SESSION['user']['id']);
+        $balance = $this->userModel->getBalance($_SESSION['user']['id']);
         require __DIR__ . '/../View/upload-file.php';
     }
 
@@ -129,6 +137,7 @@ class FileController {
         }
 
         $files = $this->uploadedFileModel->getByUserId($_SESSION['user']['id']);
+        $balance = $this->userModel->getBalance($_SESSION['user']['id']);
         require __DIR__ . '/../View/upload-file.php';
     }
 }
