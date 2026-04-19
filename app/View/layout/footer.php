@@ -10,7 +10,6 @@
                 <h3>Liên kết</h3>
                 <ul>
                     <li><a href="/dashboard">Dashboard</a></li>
-                    <li><a href="/rental">Thuê VPS</a></li>
                     <li><a href="/deposit">Nạp tiền</a></li>
                 </ul>
             </div>

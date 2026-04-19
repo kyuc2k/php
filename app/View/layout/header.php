@@ -18,7 +18,6 @@
                 <ul>
                     <?php if (isset($_SESSION['user'])): ?>
                         <li><a href="/dashboard">Dashboard</a></li>
-                        <li><a href="/rental">Thuê VPS</a></li>
                         <li><a href="/upload-file">Upload File</a></li>
                         <li><a href="/deposit">Nạp tiền</a></li>
                         <li><a href="/logs">Logs</a></li>
