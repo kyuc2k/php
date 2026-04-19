@@ -8,56 +8,43 @@
     <link rel="stylesheet" href="/public/assets/css/dashboard.css">
 </head>
 <body>
-    <div class="mobile-menu-btn" onclick="toggleSidebar()">
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>
-    
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-content">
-            <div class="sidebar-header">
-                <h3>Menu</h3>
-                <button class="close-sidebar" onclick="toggleSidebar()">×</button>
+    <div class="layout-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-left">
+                <h1>VPS Treo Game Java</h1>
             </div>
-            <div class="sidebar-user">
-                <span>Xin chào, <?= htmlspecialchars($_SESSION['user']['name'] ?? 'User') ?></span>
+            <div class="header-right">
+                <span class="balance-display">Số dư: <?= number_format($balance, 0, ',', '.') ?> VNĐ</span>
+                <span class="user-name">Xin chào, <?= htmlspecialchars($_SESSION['user']['name'] ?? 'User') ?></span>
+                <a href="/logout" class="btn btn-danger btn-sm">Đăng xuất</a>
             </div>
-            <div class="sidebar-menu">
-                <a href="/dashboard" onclick="toggleSidebar()">Dashboard</a>
-                <a href="/logs" onclick="toggleSidebar()">Xem nhật ký hoạt động</a>
-                <a href="/change-password" onclick="toggleSidebar()">Đổi mật khẩu</a>
-                <a href="/upload-file" onclick="toggleSidebar()">Upload File JAR</a>
-                <a href="/deposit" onclick="toggleSidebar()">Nạp tiền</a>
-                <a href="/rental" onclick="toggleSidebar()">Thuê VPS</a>
-                <a href="/logout" onclick="toggleSidebar()" class="logout-link">Đăng xuất</a>
-            </div>
-        </div>
-    </div>
-    
-    <div class="dashboard-header">
-        <h1>Dashboard VPS Game</h1>
-        <div class="user-info">
-            <a href="/logs" class="btn">Xem nhật ký hoạt động</a>
-            <a href="/change-password" class="btn">Đổi mật khẩu</a>
-            <a href="/upload-file" class="btn">Upload File JAR</a>
-            <a href="/deposit" class="btn btn-success">Nạp tiền</a>
-            <a href="/rental" class="btn btn-primary">Thuê VPS</a>
-            <span class="balance-display">Số dư: <?= number_format($balance, 0, ',', '.') ?> VNĐ</span>
-            <span>Xin chào, <?= htmlspecialchars($_SESSION['user']['name'] ?? 'User') ?></span>
-            <a href="/logout" class="btn btn-danger">Đăng xuất</a>
-        </div>
-    </div>
-    
-    <?php if (isset($_GET['success']) && $_GET['success'] == 'password_changed'): ?>
-        <div class="success" style="margin-bottom: 20px; padding: 15px; background: #d4edda; color: #28a745; border-radius: 5px; border: 1px solid #c3e6cb;">
-            Đổi mật khẩu thành công!
-        </div>
-    <?php endif; ?>
-    
-    <a href="/vm/create" class="btn-create">Tạo VPS Game mới</a>
-    
-    <div class="rental-section">
+        </header>
+
+        <div class="main-wrapper">
+            <!-- Left Sidebar -->
+            <aside class="sidebar-left">
+                <nav class="sidebar-nav">
+                    <a href="/dashboard" class="nav-item active">Dashboard</a>
+                    <a href="/logs" class="nav-item">Xem nhật ký</a>
+                    <a href="/change-password" class="nav-item">Đổi mật khẩu</a>
+                    <a href="/upload-file" class="nav-item">Upload File</a>
+                    <a href="/deposit" class="nav-item">Nạp tiền</a>
+                    <a href="/rental" class="nav-item">Thuê VPS</a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <?php if (isset($_GET['success']) && $_GET['success'] == 'password_changed'): ?>
+                    <div class="success" style="margin-bottom: 20px; padding: 15px; background: #d4edda; color: #28a745; border-radius: 5px; border: 1px solid #c3e6cb;">
+                        Đổi mật khẩu thành công!
+                    </div>
+                <?php endif; ?>
+
+                <a href="/vm/create" class="btn-create">Tạo VPS Game mới</a>
+                
+                <div class="rental-section">
         <h2>Gói thuê VPS (<?= count($rentals) ?>)</h2>
         <?php if (empty($rentals)): ?>
             <div class="info">Bạn chưa thuê gói nào. <a href="/rental" class="btn btn-primary">Thuê gói ngay</a></div>
@@ -151,18 +138,37 @@
             <?php endforeach; ?>
         <?php endif; ?>
     </div>
-    
+            </main>
+
+            <!-- Right Sidebar -->
+            <aside class="sidebar-right">
+                <div class="sidebar-widget">
+                    <h3>Thông tin tài khoản</h3>
+                    <p>Số dư: <?= number_format($balance, 0, ',', '.') ?> VNĐ</p>
+                    <p>Gói thuê: <?= count($rentals) ?></p>
+                    <p>File upload: <?= count($files) ?>/3</p>
+                </div>
+                <div class="sidebar-widget">
+                    <h3>Liên kết nhanh</h3>
+                    <a href="/deposit" class="quick-link">Nạp tiền</a>
+                    <a href="/rental" class="quick-link">Thuê VPS</a>
+                    <a href="/upload-file" class="quick-link">Upload File</a>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>&copy; 2026 VPS Treo Game Java. All rights reserved.</p>
+        </footer>
+    </div>
+
     <div id="session-alert" style="display: none; position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 20px; border-radius: 5px; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
         <p id="session-message"></p>
         <button onclick="window.location.href='/login'" style="background: white; color: #dc3545; border: none; padding: 10px 20px; border-radius: 3px; cursor: pointer; margin-top: 10px; font-weight: bold;">Đăng nhập lại</button>
     </div>
     
     <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('active');
-        }
-        
         function checkSession() {
             fetch('/validate-session')
                 .then(response => response.json())

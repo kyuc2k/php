@@ -8,15 +8,33 @@
     <link rel="stylesheet" href="/public/assets/css/dashboard.css">
 </head>
 <body>
-    <div class="dashboard-header">
-        <h1>Nạp tiền</h1>
-        <div class="user-info">
-            <a href="/dashboard" class="btn">Quay lại Dashboard</a>
-            <a href="/logout" class="btn btn-danger">Đăng xuất</a>
-        </div>
-    </div>
-    
-    <div class="dashboard-content">
+    <div class="layout-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-left">
+                <h1>Nạp tiền</h1>
+            </div>
+            <div class="header-right">
+                <a href="/dashboard" class="btn btn-sm">Quay lại Dashboard</a>
+                <a href="/logout" class="btn btn-danger btn-sm">Đăng xuất</a>
+            </div>
+        </header>
+
+        <div class="main-wrapper">
+            <!-- Left Sidebar -->
+            <aside class="sidebar-left">
+                <nav class="sidebar-nav">
+                    <a href="/dashboard" class="nav-item">Dashboard</a>
+                    <a href="/logs" class="nav-item">Xem nhật ký</a>
+                    <a href="/change-password" class="nav-item">Đổi mật khẩu</a>
+                    <a href="/upload-file" class="nav-item">Upload File</a>
+                    <a href="/deposit" class="nav-item active">Nạp tiền</a>
+                    <a href="/rental" class="nav-item">Thuê VPS</a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
         <div class="deposit-section">
             <h2>Nạp tiền vào tài khoản</h2>
             
@@ -103,6 +121,27 @@
                 </div>
             <?php endif; ?>
         </div>
+            </main>
+
+            <!-- Right Sidebar -->
+            <aside class="sidebar-right">
+                <div class="sidebar-widget">
+                    <h3>Thông tin tài khoản</h3>
+                    <p>Số dư: <?= number_format($balance, 0, ',', '.') ?> VNĐ</p>
+                    <p>Giao dịch: <?= count($deposits) ?></p>
+                </div>
+                <div class="sidebar-widget">
+                    <h3>Liên kết nhanh</h3>
+                    <a href="/rental" class="quick-link">Thuê VPS</a>
+                    <a href="/dashboard" class="quick-link">Dashboard</a>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>&copy; 2026 VPS Treo Game Java. All rights reserved.</p>
+        </footer>
     </div>
     
     <script>
