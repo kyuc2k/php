@@ -6,7 +6,6 @@ class DashboardController {
     private $instanceModel;
 
     public function __construct() {
-        session_start();
         $this->instanceModel = new Instance();
     }
 
