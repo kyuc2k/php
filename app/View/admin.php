@@ -10,10 +10,10 @@
 <body>
     <div class="admin-container">
         <form method="post">
-            <h2>Tạo User mới</h2>
+            <h2>Đăng ký tài khoản</h2>
             <input type="text" name="username" placeholder="Username" required>
             <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Tạo User</button>
+            <button type="submit">Đăng ký</button>
         </form>
     </div>
 </body>

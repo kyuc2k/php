@@ -55,7 +55,7 @@ body {
 .btn-create {
     display: inline-block;
     padding: 12px 25px;
-    background: #667eea;
+    background: #e74c3c;
     color: white;
     text-decoration: none;
     border-radius: 5px;
@@ -63,7 +63,7 @@ body {
 }
 
 .btn-create:hover {
-    background: #5568d3;
+    background: #c0392b;
 }
 
 .btn-start {

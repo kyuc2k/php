@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - VM Cloud</title>
+    <title>Dashboard - VPS Treo Game Java</title>
     <link rel="stylesheet" href="/public/assets/css/common.css">
     <link rel="stylesheet" href="/public/assets/css/dashboard.css">
 </head>
 <body>
     <div class="dashboard-header">
-        <h1>Dashboard</h1>
+        <h1>Dashboard VPS Game</h1>
         <a href="/logout" class="btn btn-danger">Đăng xuất</a>
     </div>
     
-    <a href="/vm/create" class="btn-create">Tạo VPS mới</a>
+    <a href="/vm/create" class="btn-create">Tạo VPS Game mới</a>
     
     <div class="container-list">
         <?php if (empty($instances)): ?>
             <div class="card text-center">
-                <p>Chưa có instance nào. <a href="/vm/create" class="btn btn-primary">Tạo VPS đầu tiên của bạn</a></p>
+                <p>Chưa có VPS game nào. <a href="/vm/create" class="btn btn-primary">Tạo VPS game đầu tiên của bạn</a></p>
             </div>
         <?php else: ?>
             <?php foreach ($instances as $row): ?>
                 <div class="container-item">
-                    <h3>Container: <?= htmlspecialchars($row['container_name']) ?></h3>
+                    <h3>VPS Game: <?= htmlspecialchars($row['container_name']) ?></h3>
                     <p>Trạng thái: <span class="status <?= $row['status'] ?>"><?= htmlspecialchars($row['status']) ?></span></p>
                     <div class="actions">
                         <a href="/vm/start?id=<?= $row['id'] ?>" class="btn-start">Bắt đầu</a>
