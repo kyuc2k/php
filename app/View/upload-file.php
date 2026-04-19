@@ -1,22 +1,8 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload File JAR - VPS Treo Game Java</title>
-    <link rel="stylesheet" href="/public/assets/css/common.css">
-    <link rel="stylesheet" href="/public/assets/css/dashboard.css">
-</head>
-<body>
-    <div class="dashboard-header">
+<?php require_once __DIR__ . '/layout/header.php'; ?>
+
+    <div class="page-content">
         <h1>Upload File JAR</h1>
-        <div class="user-info">
-            <a href="/dashboard" class="btn">Quay lại Dashboard</a>
-            <a href="/logout" class="btn btn-danger">Đăng xuất</a>
-        </div>
-    </div>
-    
-    <div class="dashboard-content">
+        
         <div class="upload-section">
             <h2>Upload File JAR</h2>
             <?php if (isset($error)): ?>
@@ -380,5 +366,5 @@
         }
     }
     ?>
-</body>
-</html>
+
+<?php require_once __DIR__ . '/layout/footer.php'; ?>

@@ -1,33 +1,16 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nhật ký hoạt động - VPS Treo Game Java</title>
-    <link rel="stylesheet" href="/public/assets/css/common.css">
-    <link rel="stylesheet" href="/public/assets/css/dashboard.css">
-</head>
-<body>
-    <div class="dashboard-container">
-        <div class="dashboard-header">
-            <h1>Nhật ký hoạt động</h1>
-            <div class="user-info">
-                <span>Xin chào, <?= htmlspecialchars($_SESSION['user']['name'] ?? 'User') ?></span>
-                <a href="/logout" class="btn">Đăng xuất</a>
-            </div>
-        </div>
+<?php require_once __DIR__ . '/layout/header.php'; ?>
+
+    <div class="page-content">
+        <h1>Nhật ký hoạt động</h1>
         
-        <div class="dashboard-content">
-            <a href="/dashboard" class="btn" style="margin-bottom: 20px;">Quay lại Dashboard</a>
-            
-            <div class="logs-container">
-                <table class="logs-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Hành động</th>
-                            <th>Mô tả</th>
-                            <th>IP Address</th>
+        <div class="logs-container">
+            <table class="logs-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Hành động</th>
+                        <th>Mô tả</th>
+                        <th>IP Address</th>
                             <th>Thời gian</th>
                         </tr>
                     </thead>
@@ -109,5 +92,5 @@
             }
         }
     </style>
-</body>
-</html>
+
+<?php require_once __DIR__ . '/layout/footer.php'; ?>
