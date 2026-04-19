@@ -40,9 +40,6 @@ class VMController {
             $expire = date("Y-m-d H:i:s", time() + 3600);
 
             $this->instanceModel->createSession($userId, $name, $token, $expire);
-
-            header('Location: /dashboard');
-            exit;
         } else {
             echo "<pre>";
             echo "OUTPUT:\n";
