@@ -380,15 +380,28 @@ class AuthController {
         $userId = $_SESSION['user']['id'];
         $currentSessionId = $_SESSION['session_id'] ?? null;
         
+        // If no session_id in session, it's a valid session (for existing users)
         if (!$currentSessionId) {
-            echo json_encode(['valid' => false]);
+            echo json_encode(['valid' => true]);
             exit;
         }
 
         // Check if session matches database
         $user = $this->userModel->getById($userId);
         
-        if (!$user || $user['session_id'] !== $currentSessionId) {
+        if (!$user) {
+            echo json_encode(['valid' => false]);
+            exit;
+        }
+        
+        // If user has no session_id in database, set it
+        if (!$user['session_id']) {
+            $this->userModel->updateSessionId($userId, $currentSessionId);
+            echo json_encode(['valid' => true]);
+            exit;
+        }
+        
+        if ($user['session_id'] !== $currentSessionId) {
             // Session invalid, user logged in from another device
             session_destroy();
             echo json_encode(['valid' => false, 'message' => 'Phiên đăng nhập đã hết hạn. Tài khoản đã được đăng nhập từ thiết bị khác.']);
