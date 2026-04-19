@@ -93,11 +93,7 @@
         </div>
         
         <div class="container-list">
-            <?php if (empty($instances)): ?>
-                <div class="card text-center">
-                    <p>Chưa có VPS game nào. <a href="/rental" class="btn btn-primary">Thuê VPS game đầu tiên của bạn</a></p>
-                </div>
-            <?php else: ?>
+            <?php if (!empty($instances)): ?>
                 <?php foreach ($instances as $row): ?>
                     <div class="container-item">
                         <h3>VPS Game: <?= htmlspecialchars($row['container_name']) ?></h3>
