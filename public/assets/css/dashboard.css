@@ -148,6 +148,18 @@ body {
     margin: 0;
 }
 
+/* Balance display styles */
+.balance-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 16px;
+    margin: 0 10px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
 /* Responsive styles for mobile */
 @media (max-width: 768px) {
     body {

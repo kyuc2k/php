@@ -9,6 +9,7 @@ require_once __DIR__ . '/app/Controller/DashboardController.php';
 require_once __DIR__ . '/app/Controller/VMController.php';
 require_once __DIR__ . '/app/Controller/FileController.php';
 require_once __DIR__ . '/app/Controller/DepositController.php';
+require_once __DIR__ . '/app/Controller/RentalController.php';
 
 $requestUri = $_SERVER['REQUEST_URI'];
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -109,6 +110,11 @@ switch ($route) {
     case '/vnpay_return':
         $controller = new DepositController();
         $controller->vnpayCallback();
+        break;
+
+    case '/rental':
+        $controller = new RentalController();
+        $controller->index();
         break;
 
     case '/logout':

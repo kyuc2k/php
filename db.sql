@@ -75,3 +75,29 @@ CREATE TABLE deposits (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE TABLE rental_packages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  duration_months INT NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  description TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO rental_packages (name, duration_months, price, description) VALUES
+('Gói 1 tháng', 1, 5000.00, 'Thuê VPS trong 1 tháng'),
+('Gói 3 tháng', 3, 10000.00, 'Thuê VPS trong 3 tháng - Tiết kiệm 33%'),
+('Gói 6 tháng', 6, 20000.00, 'Thuê VPS trong 6 tháng - Tiết kiệm 50%');
+
+CREATE TABLE rentals (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  package_id INT NOT NULL,
+  start_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+  end_date DATETIME,
+  status VARCHAR(20) DEFAULT 'active',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (package_id) REFERENCES rental_packages(id)
+);

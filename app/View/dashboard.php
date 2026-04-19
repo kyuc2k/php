@@ -29,6 +29,7 @@
                 <a href="/change-password" onclick="toggleSidebar()">Đổi mật khẩu</a>
                 <a href="/upload-file" onclick="toggleSidebar()">Upload File JAR</a>
                 <a href="/deposit" onclick="toggleSidebar()">Nạp tiền</a>
+                <a href="/rental" onclick="toggleSidebar()">Thuê VPS</a>
                 <a href="/logout" onclick="toggleSidebar()" class="logout-link">Đăng xuất</a>
             </div>
         </div>
@@ -41,6 +42,8 @@
             <a href="/change-password" class="btn">Đổi mật khẩu</a>
             <a href="/upload-file" class="btn">Upload File JAR</a>
             <a href="/deposit" class="btn btn-success">Nạp tiền</a>
+            <a href="/rental" class="btn btn-primary">Thuê VPS</a>
+            <span class="balance-display">Số dư: <?= number_format($balance, 0, ',', '.') ?> VNĐ</span>
             <span>Xin chào, <?= htmlspecialchars($_SESSION['user']['name'] ?? 'User') ?></span>
             <a href="/logout" class="btn btn-danger">Đăng xuất</a>
         </div>

@@ -24,6 +24,7 @@ class DashboardController {
         $user = $_SESSION['user'];
         $instances = $this->instanceModel->getByUserId($user['id']);
         $files = $this->uploadedFileModel->getByUserId($user['id']);
+        $balance = $this->userModel->getBalance($user['id']);
 
         require __DIR__ . '/../View/dashboard.php';
     }
