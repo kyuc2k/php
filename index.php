@@ -7,6 +7,7 @@ ini_set('display_errors', 1);
 require_once __DIR__ . '/app/Controller/AuthController.php';
 require_once __DIR__ . '/app/Controller/DashboardController.php';
 require_once __DIR__ . '/app/Controller/VMController.php';
+require_once __DIR__ . '/app/Controller/FileController.php';
 
 $requestUri = $_SERVER['REQUEST_URI'];
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -82,6 +83,16 @@ switch ($route) {
     case '/reset-password':
         $controller = new AuthController();
         $controller->resetPassword();
+        break;
+
+    case '/upload-file':
+        $controller = new FileController();
+        $controller->upload();
+        break;
+
+    case '/delete-file':
+        $controller = new FileController();
+        $controller->delete();
         break;
 
     case '/logout':
