@@ -19,7 +19,7 @@
             <?php if (isset($error)): ?>
                 <div class="error"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
-            <input type="text" name="code" placeholder="Mã 6 số" required pattern="[0-9]{6}" maxlength="6">
+            <input type="text" name="code" placeholder="Mã 6 số" required pattern="[0-9]{6}" maxlength="6" value="<?= htmlspecialchars($_POST['code'] ?? '') ?>">
             <button type="submit">Xác nhận</button>
         </form>
         <div class="register-link">

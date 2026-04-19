@@ -14,7 +14,7 @@
             <?php if (isset($error)): ?>
                 <div class="error"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
-            <input type="email" name="email" placeholder="Email" required autocomplete="email">
+            <input type="email" name="email" placeholder="Email" required autocomplete="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
             <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
             <button type="submit">Đăng nhập</button>
         </form>
