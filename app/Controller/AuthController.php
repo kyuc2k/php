@@ -21,6 +21,13 @@ class AuthController {
             $user = $this->userModel->authenticate($email, $password);
 
             if ($user) {
+                // Check if email is verified (except for Google users)
+                if (empty($user['google_id']) && $user['email_verified'] == 0) {
+                    $error = 'Email chưa được xác nhận. Vui lòng kiểm tra email để xác nhận tài khoản.';
+                    require __DIR__ . '/../View/login.php';
+                    return;
+                }
+                
                 $_SESSION['user'] = $user;
                 header('Location: /dashboard');
                 exit;
@@ -96,11 +103,16 @@ class AuthController {
             $result = $this->userModel->createWithEmail($name, $email, $password);
             
             if ($result) {
-                // Auto-login after successful registration
+                // Get verification code
                 $user = $this->userModel->getByEmail($email);
-                $_SESSION['user'] = $user;
-                header('Location: /dashboard');
-                exit;
+                $verificationCode = $user['verification_code'];
+                
+                // Send verification email
+                $this->sendVerificationEmail($email, $verificationCode);
+                
+                $success = 'Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.';
+                require __DIR__ . '/../View/register.php';
+                return;
             } else {
                 $error = 'Đăng ký thất bại. Vui lòng thử lại.';
                 require __DIR__ . '/../View/register.php';
@@ -155,13 +167,15 @@ class AuthController {
         $user = $this->userModel->getByGoogleId($googleId);
 
         if ($user) {
-            // Update existing user info
+            // Update existing user info and auto-verify email
             $this->userModel->updateGoogleUser($googleId, $email, $name, $picture);
+            $this->userModel->setGoogleEmailVerified($email);
             $user = $this->userModel->getByGoogleId($googleId);
             error_log('Google OAuth: Updated existing user');
         } else {
-            // Create new user
+            // Create new user with auto-verified email
             $this->userModel->createGoogleUser($googleId, $email, $name, $picture);
+            $this->userModel->setGoogleEmailVerified($email);
             $user = $this->userModel->getByGoogleId($googleId);
             error_log('Google OAuth: Created new user');
         }
@@ -175,5 +189,99 @@ class AuthController {
         session_destroy();
         header('Location: /');
         exit;
+    }
+
+    private function sendVerificationEmail($email, $verificationCode) {
+        $subject = 'Xác nhận tài khoản - VPS Treo Game Java';
+        $verifyUrl = 'https://kyuc2k.pro/verify-email?code=' . $verificationCode;
+        $message = "
+            <html>
+            <head>
+                <title>Xác nhận tài khoản</title>
+            </head>
+            <body>
+                <h2>Xác nhận tài khoản của bạn</h2>
+                <p>Cảm ơn bạn đã đăng ký tài khoản tại VPS Treo Game Java.</p>
+                <p>Vui lòng click vào link bên dưới để xác nhận email:</p>
+                <p><a href='$verifyUrl'>$verifyUrl</a></p>
+                <p>Link này sẽ hết hạn sau 24 giờ.</p>
+                <p>Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
+            </body>
+            </html>
+        ";
+        
+        $headers = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+        $headers .= "From: VPS Treo Game Java <noreply@kyuc2k.pro>\r\n";
+        
+        mail($email, $subject, $message, $headers);
+    }
+
+    public function verifyEmail() {
+        $code = $_GET['code'] ?? '';
+        
+        if (empty($code)) {
+            $error = 'Mã xác nhận không hợp lệ';
+            require __DIR__ . '/../View/verify-email.php';
+            return;
+        }
+        
+        $user = $this->userModel->getByVerificationCode($code);
+        
+        if (!$user) {
+            $error = 'Mã xác nhận không hợp lệ hoặc đã hết hạn (5 phút).';
+            require __DIR__ . '/../View/verify-email.php';
+            return;
+        }
+        
+        $result = $this->userModel->verifyEmail($code);
+        
+        if ($result) {
+            $success = 'Email đã được xác nhận thành công! Bạn có thể đăng nhập ngay.';
+            require __DIR__ . '/../View/verify-email.php';
+            return;
+        } else {
+            $error = 'Xác nhận email thất bại. Vui lòng thử lại.';
+            require __DIR__ . '/../View/verify-email.php';
+            return;
+        }
+    }
+
+    public function resendVerification() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = $_POST['email'] ?? '';
+            
+            if (empty($email)) {
+                $error = 'Vui lòng nhập email';
+                require __DIR__ . '/../View/resend-verification.php';
+                return;
+            }
+            
+            $user = $this->userModel->getByEmail($email);
+            
+            if (!$user) {
+                $error = 'Email không tồn tại';
+                require __DIR__ . '/../View/resend-verification.php';
+                return;
+            }
+            
+            if ($user['email_verified'] == 1) {
+                $success = 'Email đã được xác nhận rồi. Bạn có thể đăng nhập ngay.';
+                require __DIR__ . '/../View/resend-verification.php';
+                return;
+            }
+            
+            // Regenerate verification code
+            $this->userModel->regenerateVerificationCode($email);
+            $user = $this->userModel->getByEmail($email);
+            
+            // Send new verification email
+            $this->sendVerificationEmail($email, $user['verification_code']);
+            
+            $success = 'Đã gửi lại mã xác nhận. Vui lòng kiểm tra email.';
+            require __DIR__ . '/../View/resend-verification.php';
+            return;
+        }
+        require __DIR__ . '/../View/resend-verification.php';
     }
 }

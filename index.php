@@ -44,6 +44,16 @@ switch ($route) {
         $controller->register();
         break;
 
+    case '/verify-email':
+        $controller = new AuthController();
+        $controller->verifyEmail();
+        break;
+
+    case '/resend-verification':
+        $controller = new AuthController();
+        $controller->resendVerification();
+        break;
+
     case '/logout':
         $controller = new AuthController();
         $controller->logout();

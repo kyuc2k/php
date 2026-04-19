@@ -31,8 +31,38 @@ class User {
 
     public function createWithEmail($name, $email, $password) {
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $this->db->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $name, $email, $hashedPassword);
+        $verificationCode = bin2hex(random_bytes(32));
+        $expiry = date('Y-m-d H:i:s', strtotime('+5 minutes'));
+        $stmt = $this->db->prepare("INSERT INTO users (name, email, password, verification_code, verification_expiry) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $name, $email, $hashedPassword, $verificationCode, $expiry);
+        return $stmt->execute();
+    }
+
+    public function regenerateVerificationCode($email) {
+        $verificationCode = bin2hex(random_bytes(32));
+        $expiry = date('Y-m-d H:i:s', strtotime('+5 minutes'));
+        $stmt = $this->db->prepare("UPDATE users SET verification_code = ?, verification_expiry = ? WHERE email = ?");
+        $stmt->bind_param("sss", $verificationCode, $expiry, $email);
+        return $stmt->execute();
+    }
+
+    public function verifyEmail($verificationCode) {
+        $stmt = $this->db->prepare("UPDATE users SET email_verified = 1, verification_code = NULL, verification_expiry = NULL WHERE verification_code = ? AND verification_expiry > NOW()");
+        $stmt->bind_param("s", $verificationCode);
+        return $stmt->execute();
+    }
+
+    public function getByVerificationCode($verificationCode) {
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE verification_code = ? AND verification_expiry > NOW()");
+        $stmt->bind_param("s", $verificationCode);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+    }
+
+    public function setGoogleEmailVerified($email) {
+        $stmt = $this->db->prepare("UPDATE users SET email_verified = 1, verification_code = NULL WHERE email = ?");
+        $stmt->bind_param("s", $email);
         return $stmt->execute();
     }
 
