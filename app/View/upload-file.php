@@ -22,6 +22,12 @@
             <?php if (isset($error)): ?>
                 <div class="error"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
+            <?php if (isset($_GET['success']) && $_GET['success'] == 'uploaded'): ?>
+                <div class="success">Upload file thành công!</div>
+            <?php endif; ?>
+            <?php if (isset($_GET['success']) && $_GET['success'] == 'deleted'): ?>
+                <div class="success">Xóa file thành công!</div>
+            <?php endif; ?>
             <?php if (isset($success)): ?>
                 <div class="success"><?= htmlspecialchars($success) ?></div>
             <?php endif; ?>

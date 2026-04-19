@@ -84,7 +84,8 @@ class FileController {
 
                 if ($result) {
                     $this->userLog->create($userId, 'FILE_UPLOAD', 'Uploaded file: ' . $file['name']);
-                    $success = 'Upload file thành công!';
+                    header('Location: /upload-file?success=uploaded');
+                    exit;
                 } else {
                     $error = 'Lưu thông tin file thất bại';
                     // Delete uploaded file if database save failed
@@ -119,7 +120,8 @@ class FileController {
                 $result = $this->uploadedFileModel->delete($fileId);
                 if ($result) {
                     $this->userLog->create($userId, 'FILE_DELETE', 'Deleted file: ' . $file['original_name']);
-                    $success = 'Xóa file thành công!';
+                    header('Location: /upload-file?success=deleted');
+                    exit;
                 } else {
                     $error = 'Xóa file thất bại';
                 }
