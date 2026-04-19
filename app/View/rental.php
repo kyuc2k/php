@@ -23,7 +23,7 @@
                             <p class="package-duration"><?= $package['duration_months'] ?> tháng</p>
                             <p class="package-description"><?= htmlspecialchars($package['description']) ?></p>
                             <?php if ($balance >= $package['price']): ?>
-                                <button type="button" class="btn btn-primary btn-block" onclick="showRentalModal(<?= $package['id'] ?>, '<?= htmlspecialchars($package['name']) ?>', <?= number_format($package['price'], 0, ',', '.') ?>)">Thuê ngay</button>
+                                <button type="button" class="btn btn-primary btn-block" onclick="showRentalModal(<?= $package['id'] ?>, '<?= htmlspecialchars($package['name']) ?>', <?= $package['price'] ?>)">Thuê ngay</button>
                             <?php else: ?>
                                 <a href="/deposit" class="btn btn-primary btn-block" style="text-align: center; display: block; text-decoration: none;">Không đủ tiền - Nạp ngay</a>
                             <?php endif; ?>
@@ -100,7 +100,7 @@
         function showRentalModal(packageId, packageName, packagePrice) {
             rentalPackageId = packageId;
             document.getElementById('rentalPackageName').textContent = packageName;
-            document.getElementById('rentalPackagePrice').textContent = packagePrice;
+            document.getElementById('rentalPackagePrice').textContent = packagePrice.toLocaleString('vi-VN');
             document.getElementById('rentalModal').style.display = 'flex';
         }
         
