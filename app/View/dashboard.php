@@ -57,6 +57,22 @@
     
     <a href="/vm/create" class="btn-create">Tạo VPS Game mới</a>
     
+    <div class="rental-section">
+        <h2>Gói thuê VPS hiện tại</h2>
+        <?php if ($activeRental): ?>
+            <div class="rental-info">
+                <h3><?= htmlspecialchars($activeRental['package_name']) ?></h3>
+                <p>Thời hạn: <?= $activeRental['duration_months'] ?> tháng</p>
+                <p>Giá: <?= number_format($activeRental['price'], 0, ',', '.') ?> VNĐ</p>
+                <p>Ngày bắt đầu: <?= htmlspecialchars($activeRental['start_date']) ?></p>
+                <p>Ngày kết thúc: <?= htmlspecialchars($activeRental['end_date']) ?></p>
+                <p>Trạng thái: <span class="status-active">Đang hoạt động</span></p>
+            </div>
+        <?php else: ?>
+            <div class="info">Bạn chưa thuê gói nào. <a href="/rental" class="btn btn-primary">Thuê gói ngay</a></div>
+        <?php endif; ?>
+    </div>
+    
     <div class="files-section">
         <h2>Danh sách file JAR đã upload (<?= count($files) ?>/3)</h2>
         <?php if (empty($files)): ?>

@@ -160,6 +160,45 @@ body {
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
+/* Rental section styles */
+.rental-section {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.rental-section h2 {
+    color: #e74c3c;
+    margin-bottom: 20px;
+}
+
+.rental-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.rental-info h3 {
+    margin: 0 0 15px 0;
+    font-size: 20px;
+}
+
+.rental-info p {
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+.status-active {
+    background: #28a745;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
 /* Responsive styles for mobile */
 @media (max-width: 768px) {
     body {

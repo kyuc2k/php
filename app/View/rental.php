@@ -59,10 +59,7 @@
                             <?php if ($activeRental): ?>
                                 <button class="btn btn-disabled" disabled>Đang thuê</button>
                             <?php else: ?>
-                                <form method="post">
-                                    <input type="hidden" name="package_id" value="<?= $package['id'] ?>">
-                                    <button type="submit" class="btn btn-primary btn-block">Thuê ngay</button>
-                                </form>
+                                <button type="button" class="btn btn-primary btn-block" onclick="showRentalModal(<?= $package['id'] ?>, '<?= htmlspecialchars($package['name']) ?>', <?= number_format($package['price'], 0, ',', '.') ?>)">Thuê ngay</button>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -70,6 +67,66 @@
             </div>
         </div>
     </div>
+    
+    <!-- Rental Confirmation Modal -->
+    <div id="rentalModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Xác nhận thuê VPS</h3>
+                <button class="modal-close" onclick="hideRentalModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc muốn thuê gói <strong id="rentalPackageName"></strong> không?</p>
+                <p>Giá: <strong id="rentalPackagePrice"></strong> VNĐ</p>
+                <p>Số tiền sẽ được trừ từ tài khoản của bạn.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="hideRentalModal()">Hủy</button>
+                <button class="btn btn-primary" onclick="confirmRental()">Xác nhận thuê</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let rentalPackageId = null;
+        
+        function showRentalModal(packageId, packageName, packagePrice) {
+            rentalPackageId = packageId;
+            document.getElementById('rentalPackageName').textContent = packageName;
+            document.getElementById('rentalPackagePrice').textContent = packagePrice;
+            document.getElementById('rentalModal').style.display = 'flex';
+        }
+        
+        function hideRentalModal() {
+            document.getElementById('rentalModal').style.display = 'none';
+            rentalPackageId = null;
+        }
+        
+        function confirmRental() {
+            if (rentalPackageId) {
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = '/rental';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'package_id';
+                input.value = rentalPackageId;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('rentalModal');
+            if (event.target == modal) {
+                hideRentalModal();
+            }
+        }
+    </script>
     
     <style>
         .balance-section {
@@ -196,6 +253,109 @@
             background: #ccc;
             cursor: not-allowed;
             opacity: 0.6;
+        }
+        
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #e74c3c;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            line-height: 1;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-body p {
+            margin: 10px 0;
+            color: #333;
+        }
+        
+        .modal-body strong {
+            color: #e74c3c;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-footer .btn {
+            padding: 10px 20px;
+            min-width: 100px;
+        }
+        
+        @media (max-width: 480px) {
+            .modal-content {
+                width: 95%;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
+            }
         }
         
         @media (max-width: 768px) {
