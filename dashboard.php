@@ -28,7 +28,7 @@ Status: <?= $row['status'] ?>
 
 <a href="stop.php?id=<?= $row['id'] ?>">Stop</a>
 
-<a href="vnc_gate.php" target="_blank">Open VPS</a>
+<a href="http://103.245.236.153:<?= $row['port'] ?>/vnc.html" target="_blank">Open VPS</a>
 
 </div>
 
