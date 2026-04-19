@@ -29,11 +29,14 @@ class VMController {
         }
 
         $userPath = "user_" . $userId;
-        $vnc_password = '123456';
+        $vnc_password = '112169';
 
         $output = $this->instanceModel->createContainer($name, $port, $userPath, $vnc_password);
 
+        echo "<pre>";
+        echo "OUTPUT:\n";
         var_dump($output);
+        echo "</pre>";
 
         if ($output && !str_contains($output, 'error') && !str_contains($output, 'Error')) {
             $this->instanceModel->create($userId, $name, $port, 'running');
@@ -42,11 +45,8 @@ class VMController {
             $expire = date("Y-m-d H:i:s", time() + 3600);
 
             $this->instanceModel->createSession($userId, $name, $token, $expire);
+            echo "Docker create successful!";
         } else {
-            echo "<pre>";
-            echo "OUTPUT:\n";
-            var_dump($output);
-            echo "</pre>";
             echo "Docker create failed";
         }
     }
