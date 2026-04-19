@@ -31,7 +31,7 @@ class User {
 
     public function createWithEmail($name, $email, $password) {
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-        $verificationCode = bin2hex(random_bytes(32));
+        $verificationCode = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
         $expiry = date('Y-m-d H:i:s', strtotime('+5 minutes'));
         $stmt = $this->db->prepare("INSERT INTO users (name, email, password, verification_code, verification_expiry) VALUES (?, ?, ?, ?, ?)");
         $stmt->bind_param("sssss", $name, $email, $hashedPassword, $verificationCode, $expiry);
@@ -39,7 +39,7 @@ class User {
     }
 
     public function regenerateVerificationCode($email) {
-        $verificationCode = bin2hex(random_bytes(32));
+        $verificationCode = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
         $expiry = date('Y-m-d H:i:s', strtotime('+5 minutes'));
         $stmt = $this->db->prepare("UPDATE users SET verification_code = ?, verification_expiry = ? WHERE email = ?");
         $stmt->bind_param("sss", $verificationCode, $expiry, $email);

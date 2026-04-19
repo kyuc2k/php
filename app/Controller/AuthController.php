@@ -110,9 +110,9 @@ class AuthController {
                 // Send verification email
                 $this->sendVerificationEmail($email, $verificationCode);
                 
-                $success = 'Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.';
-                require __DIR__ . '/../View/register.php';
-                return;
+                // Redirect to code entry page
+                header('Location: /enter-verification-code');
+                exit;
             } else {
                 $error = 'Đăng ký thất bại. Vui lòng thử lại.';
                 require __DIR__ . '/../View/register.php';
@@ -213,20 +213,19 @@ class AuthController {
             $mail->addAddress($email);
             
             $mail->isHTML(true);
-            $mail->Subject = 'Xác nhận tài khoản - VPS Treo Game Java';
+            $mail->Subject = 'Mã xác nhận tài khoản - VPS Treo Game Java';
             
-            $verifyUrl = 'https://kyuc2k.pro/verify-email?code=' . $verificationCode;
             $mail->Body = "
                 <html>
                 <head>
-                    <title>Xác nhận tài khoản</title>
+                    <title>Mã xác nhận tài khoản</title>
                 </head>
                 <body>
-                    <h2>Xác nhận tài khoản của bạn</h2>
+                    <h2>Mã xác nhận tài khoản của bạn</h2>
                     <p>Cảm ơn bạn đã đăng ký tài khoản tại VPS Treo Game Java.</p>
-                    <p>Vui lòng click vào link bên dưới để xác nhận email:</p>
-                    <p><a href='$verifyUrl'>$verifyUrl</a></p>
-                    <p>Link này sẽ hết hạn sau 5 phút.</p>
+                    <p>Mã xác nhận của bạn là: <strong>$verificationCode</strong></p>
+                    <p>Vui lòng nhập mã này vào trang web để xác nhận tài khoản.</p>
+                    <p>Mã này sẽ hết hạn sau 5 phút.</p>
                     <p>Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
                 </body>
                 </html>
@@ -239,33 +238,38 @@ class AuthController {
     }
 
     public function verifyEmail() {
-        $code = $_GET['code'] ?? '';
-        
-        if (empty($code)) {
-            $error = 'Mã xác nhận không hợp lệ';
-            require __DIR__ . '/../View/verify-email.php';
-            return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $code = $_POST['code'] ?? '';
+            
+            if (empty($code) || !preg_match('/^[0-9]{6}$/', $code)) {
+                $error = 'Mã xác nhận phải là 6 số';
+                require __DIR__ . '/../View/enter-verification-code.php';
+                return;
+            }
+            
+            $user = $this->userModel->getByVerificationCode($code);
+            
+            if (!$user) {
+                $error = 'Mã xác nhận không hợp lệ hoặc đã hết hạn (5 phút).';
+                require __DIR__ . '/../View/enter-verification-code.php';
+                return;
+            }
+            
+            $result = $this->userModel->verifyEmail($code);
+            
+            if ($result) {
+                // Auto-login after successful verification
+                $user = $this->userModel->getByEmail($user['email']);
+                $_SESSION['user'] = $user;
+                header('Location: /dashboard');
+                exit;
+            } else {
+                $error = 'Xác nhận mã thất bại. Vui lòng thử lại.';
+                require __DIR__ . '/../View/enter-verification-code.php';
+                return;
+            }
         }
-        
-        $user = $this->userModel->getByVerificationCode($code);
-        
-        if (!$user) {
-            $error = 'Mã xác nhận không hợp lệ hoặc đã hết hạn (5 phút).';
-            require __DIR__ . '/../View/verify-email.php';
-            return;
-        }
-        
-        $result = $this->userModel->verifyEmail($code);
-        
-        if ($result) {
-            $success = 'Email đã được xác nhận thành công! Bạn có thể đăng nhập ngay.';
-            require __DIR__ . '/../View/verify-email.php';
-            return;
-        } else {
-            $error = 'Xác nhận email thất bại. Vui lòng thử lại.';
-            require __DIR__ . '/../View/verify-email.php';
-            return;
-        }
+        require __DIR__ . '/../View/enter-verification-code.php';
     }
 
     public function resendVerification() {

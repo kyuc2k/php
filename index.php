@@ -49,6 +49,11 @@ switch ($route) {
         $controller->verifyEmail();
         break;
 
+    case '/enter-verification-code':
+        $controller = new AuthController();
+        $controller->verifyEmail();
+        break;
+
     case '/resend-verification':
         $controller = new AuthController();
         $controller->resendVerification();
