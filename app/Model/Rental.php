@@ -38,7 +38,7 @@ class Rental {
         $stmt = $this->db->prepare("INSERT INTO rentals (user_id, package_id, start_date, end_date, status) VALUES (?, ?, ?, ?, 'active')");
         $stmt->bind_param("iiss", $userId, $packageId, $startDate, $endDate);
         $stmt->execute();
-        return $this->db->insert_id;
+        return $this->db->getConnection()->insert_id;
     }
 
     public function updateVpsInfo($rentalId, $vpsUrl, $vpsPassword) {

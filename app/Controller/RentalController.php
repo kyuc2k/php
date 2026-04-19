@@ -55,12 +55,9 @@ class RentalController {
             $this->userModel->addBalance($userId, -$package['price']);
 
             // Create rental
-            $result = $this->rentalModel->createRental($userId, $packageId);
+            $rentalId = $this->rentalModel->createRental($userId, $packageId);
 
-            if ($result) {
-                // Get rental ID from the last insert
-                $rentals = $this->rentalModel->getByUserId($userId);
-                $rentalId = $rentals[0]['id'];
+            if ($rentalId) {
                 
                 // Generate VPS access info
                 $vpsPassword = $this->generatePassword();
