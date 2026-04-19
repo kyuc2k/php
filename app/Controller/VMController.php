@@ -22,7 +22,7 @@ class VMController {
         $port = rand(6001, 7000);
         $name = "vm_{$userId}_{$time}";
 
-        $basePath = "/data/vms/user_" . $userId;
+        $basePath = "/var/www/php/vms/user_" . $userId;
 
         if (!is_dir($basePath)) {
             mkdir($basePath, 0755, true);
