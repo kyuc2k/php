@@ -192,29 +192,48 @@ class AuthController {
     }
 
     private function sendVerificationEmail($email, $verificationCode) {
-        $subject = 'Xác nhận tài khoản - VPS Treo Game Java';
-        $verifyUrl = 'https://kyuc2k.pro/verify-email?code=' . $verificationCode;
-        $message = "
-            <html>
-            <head>
-                <title>Xác nhận tài khoản</title>
-            </head>
-            <body>
-                <h2>Xác nhận tài khoản của bạn</h2>
-                <p>Cảm ơn bạn đã đăng ký tài khoản tại VPS Treo Game Java.</p>
-                <p>Vui lòng click vào link bên dưới để xác nhận email:</p>
-                <p><a href='$verifyUrl'>$verifyUrl</a></p>
-                <p>Link này sẽ hết hạn sau 24 giờ.</p>
-                <p>Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
-            </body>
-            </html>
-        ";
+        require_once __DIR__ . '/../../PHPMailer/src/PHPMailer.php';
+        require_once __DIR__ . '/../../PHPMailer/src/SMTP.php';
+        require_once __DIR__ . '/../../PHPMailer/src/Exception.php';
+
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
         
-        $headers = "MIME-Version: 1.0\r\n";
-        $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-        $headers .= "From: VPS Treo Game Java <noreply@kyuc2k.pro>\r\n";
-        
-        mail($email, $subject, $message, $headers);
+        try {
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = getenv('GMAIL_USERNAME');
+            $mail->Password = getenv('GMAIL_APP_PASSWORD');
+            $mail->SMTPSecure = PHPMailer\PHPMailer\ENCRYPTION_STARTTLS;
+            $mail->Port = 587;
+            
+            $mail->setFrom(getenv('GMAIL_USERNAME'), 'VPS Treo Game Java');
+            $mail->addAddress($email);
+            
+            $mail->isHTML(true);
+            $mail->Subject = 'Xác nhận tài khoản - VPS Treo Game Java';
+            
+            $verifyUrl = 'https://kyuc2k.pro/verify-email?code=' . $verificationCode;
+            $mail->Body = "
+                <html>
+                <head>
+                    <title>Xác nhận tài khoản</title>
+                </head>
+                <body>
+                    <h2>Xác nhận tài khoản của bạn</h2>
+                    <p>Cảm ơn bạn đã đăng ký tài khoản tại VPS Treo Game Java.</p>
+                    <p>Vui lòng click vào link bên dưới để xác nhận email:</p>
+                    <p><a href='$verifyUrl'>$verifyUrl</a></p>
+                    <p>Link này sẽ hết hạn sau 5 phút.</p>
+                    <p>Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
+                </body>
+                </html>
+            ";
+            
+            $mail->send();
+        } catch (Exception $e) {
+            error_log('PHPMailer Error: ' . $mail->ErrorInfo);
+        }
     }
 
     public function verifyEmail() {
