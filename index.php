@@ -1,5 +1,9 @@
 <?php
 
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once __DIR__ . '/app/Controller/AuthController.php';
 require_once __DIR__ . '/app/Controller/DashboardController.php';
 require_once __DIR__ . '/app/Controller/AdminController.php';
@@ -9,8 +13,21 @@ $requestUri = $_SERVER['REQUEST_URI'];
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 $route = parse_url($requestUri, PHP_URL_PATH);
-$route = str_replace('/php', '', $route);
+
+// Handle both localhost (/php/php/...) and VPS (/...) paths
+if (strpos($route, '/php/php') === 0) {
+    $route = substr($route, 8); // Remove /php/php
+} elseif (strpos($route, '/php') === 0) {
+    $route = substr($route, 4); // Remove /php
+}
+
 $route = rtrim($route, '/');
+if (empty($route)) {
+    $route = '/';
+}
+
+// Debug: Log routing info (comment out in production)
+// error_log("Route: $route, URI: $requestUri");
 
 switch ($route) {
     case '':
