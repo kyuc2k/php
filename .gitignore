@@ -7,3 +7,4 @@ Caddyfile
 Dockerfile
 docker-compose.yml
 .htaccess
+*.sh
