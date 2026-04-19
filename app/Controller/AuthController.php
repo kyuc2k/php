@@ -96,9 +96,11 @@ class AuthController {
             $result = $this->userModel->createWithEmail($name, $email, $password);
             
             if ($result) {
-                $success = 'Đăng ký thành công! Vui lòng đăng nhập.';
-                require __DIR__ . '/../View/register.php';
-                return;
+                // Auto-login after successful registration
+                $user = $this->userModel->getByEmail($email);
+                $_SESSION['user'] = $user;
+                header('Location: /dashboard');
+                exit;
             } else {
                 $error = 'Đăng ký thất bại. Vui lòng thử lại.';
                 require __DIR__ . '/../View/register.php';

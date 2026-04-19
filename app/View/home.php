@@ -19,7 +19,7 @@
             <div class="nav-links">
                 <a href="/">Trang chủ</a>
                 <a href="/login">Đăng nhập</a>
-                <a href="/admin">Đăng ký</a>
+                <a href="/register">Đăng ký</a>
             </div>
         </nav>
     </header>
