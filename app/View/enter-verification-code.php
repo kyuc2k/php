@@ -11,6 +11,7 @@
     <div class="login-container">
         <form method="post">
             <h2>Nhập mã xác nhận</h2>
+            <div class="info">Mã xác nhận đã được gửi về email của bạn. Vui lòng kiểm tra email.</div>
             <?php if (isset($error)): ?>
                 <div class="error"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>

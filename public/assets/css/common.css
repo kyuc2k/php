@@ -181,6 +181,15 @@ input:focus {
     border: 1px solid #c3e6cb;
 }
 
+.info {
+    color: #0c5460;
+    background: #d1ecf1;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #bee5eb;
+}
+
 /* Common status badges */
 .status {
     padding: 5px 10px;
