@@ -116,22 +116,29 @@ class AuthController {
 
     public function googleCallback() {
         if (!isset($_GET['code'])) {
+            error_log('Google OAuth: No code received');
             header('Location: /login?error=google_auth_failed');
             exit;
         }
 
         $code = $_GET['code'];
+        error_log('Google OAuth: Code received - ' . substr($code, 0, 10) . '...');
+        
         $tokenData = $this->googleOAuth->getAccessToken($code);
 
         if (isset($tokenData['error'])) {
+            error_log('Google OAuth: Token error - ' . print_r($tokenData, true));
             header('Location: /login?error=token_error');
             exit;
         }
 
         $accessToken = $tokenData['access_token'];
+        error_log('Google OAuth: Access token received');
+        
         $userInfo = $this->googleOAuth->getUserInfo($accessToken);
 
         if (!isset($userInfo['id'])) {
+            error_log('Google OAuth: User info error - ' . print_r($userInfo, true));
             header('Location: /login?error=user_info_error');
             exit;
         }
@@ -141,16 +148,20 @@ class AuthController {
         $name = $userInfo['name'] ?? '';
         $picture = $userInfo['picture'] ?? '';
 
+        error_log('Google OAuth: User info - ID: ' . $googleId . ', Email: ' . $email);
+
         $user = $this->userModel->getByGoogleId($googleId);
 
         if ($user) {
             // Update existing user info
             $this->userModel->updateGoogleUser($googleId, $email, $name, $picture);
             $user = $this->userModel->getByGoogleId($googleId);
+            error_log('Google OAuth: Updated existing user');
         } else {
             // Create new user
             $this->userModel->createGoogleUser($googleId, $email, $name, $picture);
             $user = $this->userModel->getByGoogleId($googleId);
+            error_log('Google OAuth: Created new user');
         }
 
         $_SESSION['user'] = $user;
