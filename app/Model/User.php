@@ -69,10 +69,8 @@ class User {
     }
 
     public function createGoogleUser($googleId, $email, $name, $picture) {
-        $stmt = $this->db->prepare("INSERT INTO users (google_id, email, name, picture, username, password) VALUES (?, ?, ?, ?, ?, ?)");
-        $username = $email; // Use email as username
-        $password = ''; // No password for Google users
-        $stmt->bind_param("ssssss", $googleId, $email, $name, $picture, $username, $password);
+        $stmt = $this->db->prepare("INSERT INTO users (google_id, email, name, picture) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $googleId, $email, $name, $picture);
         return $stmt->execute();
     }
 
