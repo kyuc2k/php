@@ -49,7 +49,7 @@ switch ($route) {
         $controller->logout();
         break;
 
-    case '/google-login.php':
+    case '/google-login':
         $controller = new AuthController();
         $controller->googleLogin();
         break;

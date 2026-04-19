@@ -23,7 +23,7 @@
             <span>hoặc</span>
         </div>
         
-        <a href="/google-login.php" class="google-btn">
+        <a href="/google-login" class="google-btn">
             <img src="https://www.google.com/favicon.ico" alt="Google">
             Đăng nhập với Google
         </a>
