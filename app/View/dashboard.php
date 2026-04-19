@@ -52,6 +52,28 @@
     
     <a href="/vm/create" class="btn-create">Tạo VPS Game mới</a>
     
+    <div class="files-section">
+        <h2>Danh sách file JAR đã upload (<?= count($files) ?>/3)</h2>
+        <?php if (empty($files)): ?>
+            <div class="info">Chưa có file nào được upload. <a href="/upload-file" class="btn btn-primary">Upload file đầu tiên</a></div>
+        <?php else: ?>
+            <div class="files-list">
+                <?php foreach ($files as $file): ?>
+                    <div class="file-item">
+                        <div class="file-info">
+                            <h3><?= htmlspecialchars($file['original_name']) ?></h3>
+                            <p>Kích thước: <?= formatFileSize($file['file_size']) ?></p>
+                            <p>Upload lúc: <?= htmlspecialchars($file['uploaded_at']) ?></p>
+                        </div>
+                        <div class="file-actions">
+                            <a href="/upload-file" class="btn">Quản lý file</a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+    
     <div class="container-list">
         <?php if (empty($instances)): ?>
             <div class="card text-center">
@@ -101,5 +123,20 @@
         // Check session on page load
         checkSession();
     </script>
+    
+    <?php
+    // Helper function to format file size
+    function formatFileSize($bytes) {
+        if ($bytes >= 1073741824) {
+            return number_format($bytes / 1073741824, 2) . ' GB';
+        } elseif ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) {
+            return number_format($bytes / 1024, 2) . ' KB';
+        } else {
+            return $bytes . ' bytes';
+        }
+    }
+    ?>
 </body>
 </html>
