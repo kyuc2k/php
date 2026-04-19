@@ -38,5 +38,30 @@
             <?php endforeach; ?>
         <?php endif; ?>
     </div>
+    
+    <div id="session-alert" style="display: none; position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 20px; border-radius: 5px; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+        <p id="session-message"></p>
+        <button onclick="window.location.href='/login'" style="background: white; color: #dc3545; border: none; padding: 10px 20px; border-radius: 3px; cursor: pointer; margin-top: 10px; font-weight: bold;">Đăng nhập lại</button>
+    </div>
+    
+    <script>
+        function checkSession() {
+            fetch('/validate-session')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.valid) {
+                        document.getElementById('session-alert').style.display = 'block';
+                        document.getElementById('session-message').textContent = data.message || 'Phiên đăng nhập đã hết hạn';
+                    }
+                })
+                .catch(error => console.error('Session check error:', error));
+        }
+        
+        // Check session every 30 seconds
+        setInterval(checkSession, 30000);
+        
+        // Check session on page load
+        checkSession();
+    </script>
 </body>
 </html>

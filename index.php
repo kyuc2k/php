@@ -64,6 +64,11 @@ switch ($route) {
         $controller->logs();
         break;
 
+    case '/validate-session':
+        $controller = new AuthController();
+        $controller->validateSession();
+        break;
+
     case '/logout':
         $controller = new AuthController();
         $controller->logout();
@@ -80,11 +85,6 @@ switch ($route) {
         break;
 
     case '/dashboard':
-        $authController = new AuthController();
-        if (!$authController->validateSession()) {
-            header('Location: /login?error=session_expired');
-            exit;
-        }
         $controller = new DashboardController();
         $controller->index();
         break;

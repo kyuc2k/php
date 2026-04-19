@@ -373,14 +373,16 @@ class AuthController {
 
     public function validateSession() {
         if (!isset($_SESSION['user'])) {
-            return false;
+            echo json_encode(['valid' => false]);
+            exit;
         }
 
         $userId = $_SESSION['user']['id'];
         $currentSessionId = $_SESSION['session_id'] ?? null;
         
         if (!$currentSessionId) {
-            return false;
+            echo json_encode(['valid' => false]);
+            exit;
         }
 
         // Check if session matches database
@@ -389,9 +391,11 @@ class AuthController {
         if (!$user || $user['session_id'] !== $currentSessionId) {
             // Session invalid, user logged in from another device
             session_destroy();
-            return false;
+            echo json_encode(['valid' => false, 'message' => 'Phiên đăng nhập đã hết hạn. Tài khoản đã được đăng nhập từ thiết bị khác.']);
+            exit;
         }
 
-        return true;
+        echo json_encode(['valid' => true]);
+        exit;
     }
 }
