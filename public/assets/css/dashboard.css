@@ -1,0 +1,94 @@
+/* Page-specific styles for dashboard */
+
+body {
+    padding: 20px;
+    background: #f5f5f5;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.container-list {
+    margin-top: 20px;
+}
+
+.container-item {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin: 15px 0;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.container-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.container-item h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.actions {
+    margin-top: 15px;
+}
+
+.actions a {
+    margin-right: 10px;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.btn-create {
+    display: inline-block;
+    padding: 12px 25px;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.btn-create:hover {
+    background: #5568d3;
+}
+
+.btn-start {
+    background: #28a745;
+    color: white;
+}
+
+.btn-start:hover {
+    background: #218838;
+}
+
+.btn-stop {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-stop:hover {
+    background: #c82333;
+}
+
+.btn-open {
+    background: #007bff;
+    color: white;
+}
+
+.btn-open:hover {
+    background: #0056b3;
+}

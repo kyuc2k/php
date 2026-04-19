@@ -1,0 +1,37 @@
+/* Page-specific styles for admin page */
+
+body {
+    padding: 50px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    min-height: 100vh;
+}
+
+.admin-container {
+    max-width: 400px;
+    margin: 0 auto;
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.admin-container h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #28a745;
+}
+
+.admin-container button {
+    width: 100%;
+    padding: 12px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.admin-container button:hover {
+    background: #218838;
+}
