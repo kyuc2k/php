@@ -4,6 +4,25 @@ require_once __DIR__ . '/../Model/Deposit.php';
 require_once __DIR__ . '/../Model/User.php';
 require_once __DIR__ . '/../Model/UserLog.php';
 
+// Load .env file
+$envFile = __DIR__ . '/../../.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) {
+            continue;
+        }
+        list($name, $value) = explode('=', $line, 2);
+        $name = trim($name);
+        $value = trim($value);
+        if (!array_key_exists($name, $_SERVER) && !array_key_exists($name, $_ENV)) {
+            putenv(sprintf('%s=%s', $name, $value));
+            $_ENV[$name] = $value;
+            $_SERVER[$name] = $value;
+        }
+    }
+}
+
 class DepositController {
     private $depositModel;
     private $userModel;
@@ -105,7 +124,11 @@ class DepositController {
     }
 
     public function vnpayCallback() {
-        $vnp_HashSecret = getenv('VNPAY_HASHSECRET') ?: 'YOUR_HASHSECRET';
+        $vnp_HashSecret = getenv('VNP_HASH_SECRET') ?: 'YOUR_HASHSECRET';
+
+        // Log for debugging
+        error_log("VNPay Callback - HashSecret: " . $vnp_HashSecret);
+        error_log("VNPay Callback - GET params: " . json_encode($_GET));
 
         $vnp_SecureHash = $_GET['vnp_SecureHash'];
         $inputData = array();
@@ -128,7 +151,10 @@ class DepositController {
             }
         }
 
+        error_log("VNPay Callback - Hashdata: " . $hashdata);
         $secureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
+        error_log("VNPay Callback - Calculated Hash: " . $secureHash);
+        error_log("VNPay Callback - Received Hash: " . $vnp_SecureHash);
 
         if ($secureHash == $vnp_SecureHash) {
             $vnp_ResponseCode = $_GET['vnp_ResponseCode'];
