@@ -58,18 +58,28 @@
     <a href="/vm/create" class="btn-create">Tạo VPS Game mới</a>
     
     <div class="rental-section">
-        <h2>Gói thuê VPS hiện tại</h2>
-        <?php if ($activeRental): ?>
-            <div class="rental-info">
-                <h3><?= htmlspecialchars($activeRental['package_name']) ?></h3>
-                <p>Thời hạn: <?= $activeRental['duration_months'] ?> tháng</p>
-                <p>Giá: <?= number_format($activeRental['price'], 0, ',', '.') ?> VNĐ</p>
-                <p>Ngày bắt đầu: <?= htmlspecialchars($activeRental['start_date']) ?></p>
-                <p>Ngày kết thúc: <?= htmlspecialchars($activeRental['end_date']) ?></p>
-                <p>Trạng thái: <span class="status-active">Đang hoạt động</span></p>
-            </div>
-        <?php else: ?>
+        <h2>Gói thuê VPS (<?= count($rentals) ?>)</h2>
+        <?php if (empty($rentals)): ?>
             <div class="info">Bạn chưa thuê gói nào. <a href="/rental" class="btn btn-primary">Thuê gói ngay</a></div>
+        <?php else: ?>
+            <div class="rentals-list">
+                <?php foreach ($rentals as $rental): ?>
+                    <div class="rental-item">
+                        <div class="rental-info">
+                            <h3><?= htmlspecialchars($rental['package_name']) ?></h3>
+                            <p>Thời hạn: <?= $rental['duration_months'] ?> tháng</p>
+                            <p>Giá: <?= number_format($rental['price'], 0, ',', '.') ?> VNĐ</p>
+                            <p>Ngày bắt đầu: <?= htmlspecialchars($rental['start_date']) ?></p>
+                            <p>Ngày kết thúc: <?= htmlspecialchars($rental['end_date']) ?></p>
+                            <?php if ($rental['status'] == 'active' && $rental['end_date'] > date('Y-m-d H:i:s')): ?>
+                                <p>Trạng thái: <span class="status-active">Đang hoạt động</span></p>
+                            <?php else: ?>
+                                <p>Trạng thái: <span class="status-expired">Đã hết hạn</span></p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
     </div>
     

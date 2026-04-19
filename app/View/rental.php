@@ -23,16 +23,26 @@
             <a href="/deposit" class="btn btn-success">Nạp thêm tiền</a>
         </div>
         
-        <?php if ($activeRental): ?>
+        <?php if (!empty($rentals)): ?>
             <div class="active-rental">
-                <h2>Gói thuê hiện tại</h2>
-                <div class="rental-info">
-                    <h3><?= htmlspecialchars($activeRental['package_name']) ?></h3>
-                    <p>Thời hạn: <?= $activeRental['duration_months'] ?> tháng</p>
-                    <p>Giá: <?= number_format($activeRental['price'], 0, ',', '.') ?> VNĐ</p>
-                    <p>Ngày bắt đầu: <?= htmlspecialchars($activeRental['start_date']) ?></p>
-                    <p>Ngày kết thúc: <?= htmlspecialchars($activeRental['end_date']) ?></p>
-                    <p>Trạng thái: <span class="status-active">Đang hoạt động</span></p>
+                <h2>Gói thuê của bạn (<?= count($rentals) ?>)</h2>
+                <div class="rentals-list">
+                    <?php foreach ($rentals as $rental): ?>
+                        <div class="rental-item">
+                            <div class="rental-info">
+                                <h3><?= htmlspecialchars($rental['package_name']) ?></h3>
+                                <p>Thời hạn: <?= $rental['duration_months'] ?> tháng</p>
+                                <p>Giá: <?= number_format($rental['price'], 0, ',', '.') ?> VNĐ</p>
+                                <p>Ngày bắt đầu: <?= htmlspecialchars($rental['start_date']) ?></p>
+                                <p>Ngày kết thúc: <?= htmlspecialchars($rental['end_date']) ?></p>
+                                <?php if ($rental['status'] == 'active' && $rental['end_date'] > date('Y-m-d H:i:s')): ?>
+                                    <p>Trạng thái: <span class="status-active">Đang hoạt động</span></p>
+                                <?php else: ?>
+                                    <p>Trạng thái: <span class="status-expired">Đã hết hạn</span></p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         <?php endif; ?>
@@ -56,11 +66,7 @@
                         <div class="package-body">
                             <p class="package-duration"><?= $package['duration_months'] ?> tháng</p>
                             <p class="package-description"><?= htmlspecialchars($package['description']) ?></p>
-                            <?php if ($activeRental): ?>
-                                <button class="btn btn-disabled" disabled>Đang thuê</button>
-                            <?php else: ?>
-                                <button type="button" class="btn btn-primary btn-block" onclick="showRentalModal(<?= $package['id'] ?>, '<?= htmlspecialchars($package['name']) ?>', <?= number_format($package['price'], 0, ',', '.') ?>)">Thuê ngay</button>
-                            <?php endif; ?>
+                            <button type="button" class="btn btn-primary btn-block" onclick="showRentalModal(<?= $package['id'] ?>, '<?= htmlspecialchars($package['name']) ?>', <?= number_format($package['price'], 0, ',', '.') ?>)">Thuê ngay</button>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -178,6 +184,34 @@
             font-weight: bold;
         }
         
+        .status-expired {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .rentals-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .rental-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .rental-item .rental-info h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .rental-item .rental-info p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
         .packages-section {
             background: white;
             padding: 30px;
@@ -239,82 +273,8 @@
             margin-bottom: 10px;
         }
         
-        .package-description {
-            color: #666;
-            margin-bottom: 20px;
-        }
-        
-        .btn-block {
-            width: 100%;
-            padding: 12px;
-        }
-        
-        .btn-disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        
-        /* Modal styles */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-        
         .modal-content {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            max-width: 500px;
-            width: 90%;
-            animation: modalSlideIn 0.3s ease;
-        }
-        
-        @keyframes modalSlideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .modal-header h3 {
-            margin: 0;
-            color: #e74c3c;
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 30px;
-            cursor: pointer;
-            color: #666;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            line-height: 1;
-        }
-        
-        .modal-close:hover {
+            width: 95%;
             color: #333;
         }
         

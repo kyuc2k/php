@@ -32,7 +32,7 @@ class RentalController {
                 $error = 'Gói thuê không tồn tại';
                 $packages = $this->rentalModel->getAllPackages();
                 $balance = $this->userModel->getBalance($userId);
-                $activeRental = $this->rentalModel->getActiveRental($userId);
+                $rentals = $this->rentalModel->getByUserId($userId);
                 require __DIR__ . '/../View/rental.php';
                 return;
             }
@@ -43,7 +43,7 @@ class RentalController {
                 $error = 'Số dư không đủ. Vui lòng nạp thêm tiền.';
                 $packages = $this->rentalModel->getAllPackages();
                 $balance = $this->userModel->getBalance($userId);
-                $activeRental = $this->rentalModel->getActiveRental($userId);
+                $rentals = $this->rentalModel->getByUserId($userId);
                 require __DIR__ . '/../View/rental.php';
                 return;
             }
@@ -67,7 +67,7 @@ class RentalController {
 
         $packages = $this->rentalModel->getAllPackages();
         $balance = $this->userModel->getBalance($_SESSION['user']['id']);
-        $activeRental = $this->rentalModel->getActiveRental($_SESSION['user']['id']);
+        $rentals = $this->rentalModel->getByUserId($_SESSION['user']['id']);
         require __DIR__ . '/../View/rental.php';
     }
 }

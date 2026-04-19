@@ -199,6 +199,36 @@ body {
     font-weight: bold;
 }
 
+.status-expired {
+    background: #dc3545;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.rentals-list {
+    display: grid;
+    gap: 15px;
+}
+
+.rental-item {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.rental-item h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.rental-item p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
 /* Responsive styles for mobile */
 @media (max-width: 768px) {
     body {
