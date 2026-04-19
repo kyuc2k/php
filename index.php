@@ -6,7 +6,6 @@ ini_set('display_errors', 1);
 
 require_once __DIR__ . '/app/Controller/AuthController.php';
 require_once __DIR__ . '/app/Controller/DashboardController.php';
-require_once __DIR__ . '/app/Controller/AdminController.php';
 require_once __DIR__ . '/app/Controller/VMController.php';
 
 $requestUri = $_SERVER['REQUEST_URI'];
