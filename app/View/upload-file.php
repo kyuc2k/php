@@ -59,7 +59,7 @@
                         <div class="file-item">
                             <div class="file-info">
                                 <h3><?= htmlspecialchars($file['original_name']) ?></h3>
-                                <p>Kích thước: <?= $this->formatFileSize($file['file_size']) ?></p>
+                                <p>Kích thước: <?= formatFileSize($file['file_size']) ?></p>
                                 <p>Upload lúc: <?= htmlspecialchars($file['uploaded_at']) ?></p>
                             </div>
                             <div class="file-actions">
